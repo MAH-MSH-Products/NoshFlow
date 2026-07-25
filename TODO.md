@@ -1,6 +1,49 @@
 # FoodOps Project - TODO & Workflow Guide
+## 1. Project Architecture
+![project architecture](docs/imgs/architecture.png)
+1. Client / Frontend Layer
+   This layer runs in the user's browser and is responsible for user interaction and displaying data.
 
-## 1. General Git & Branching Guide
+Technologies: Utilizes base HTML, CSS, and JavaScript, along with allowed frameworks such as React or Vue (and styling tools like Tailwind/Bootstrap).
+
+State Management: The state of the shopping cart, user login status, and the real-time status of orders are managed within this layer.
+
+Server Communication: Communication with the backend layer is done exclusively through the Fetch API, exchanging data in JSON format.
+
+User Interfaces: Includes completely separate panels for four different roles: Customer (viewing the menu and tracking orders), Kitchen Staff (viewing the order queue), Cashier (final delivery), and Admin (reports and system management).
+
+2. Server / Backend Layer
+   This layer represents the core business logic of the system that processes client requests.
+
+Technologies: Uses the Node.js runtime environment along with the Express.js framework to develop the application's Routes.
+
+Internal Architecture: The code is modularly separated into Routes (routing), Controllers (main logic), and Models (data models).
+
+Middlewares: These play a very important role in this layer and are used for parsing tokens, authenticating, and enforcing Role-Based Access Control (RBAC) before the request reaches the Controllers.
+
+Critical Computational Logic: The calculation of the final price of orders is performed exclusively in this layer; the server never trusts the price sent by the client.
+
+3. Database (Data Layer)
+   This layer is responsible for the permanent and secure storage of information.
+
+Technology: Utilizes a NoSQL database, specifically MongoDB.
+
+Data Structure: Data is modeled in separate, structured Collections, which include Users, Roles, MenuItems, Categories, and Orders.
+
+Bonus Features: If bonus sections are implemented, collections such as audit_logs are added to this layer to meticulously record the history of order status changes.
+
+4. Security and Access Control Architecture
+   Security flows across all layers of this architecture:
+
+Authentication: Based on JWT (JSON Web Tokens) that have an expiration date and are stored in the client's browser.
+
+Encryption: User passwords are hashed using the bcrypt algorithm before being saved in the database.
+
+Authorization: The system operates on Role-Based Access Control (RBAC) to prevent ordinary users from accessing admin routes, and to ensure kitchen staff cannot interfere with the cashier's duties.
+
+Database Protection: Strict validation of input data is enforced to prevent NoSQL Injection attacks.
+
+## 2. General Git & Branching Guide
 Before starting any feature, ensure the correct branch is created and you are isolated from the main codebase.
 
 1.  **Sync with main development:** Run `git checkout develop` and `git pull`.
@@ -10,7 +53,7 @@ Before starting any feature, ensure the correct branch is created and you are is
 
 ---
 
-## 2. Team Communication & Handoff Protocol
+## 3. Team Communication & Handoff Protocol
 To maintain an Agile workflow and ensure no one is blocked, use the following message templates in your team chat to signal your status:
 
 * 🟢 **Start:** "I have created the branch `feature/<name>` and started working on `<feature>`."
@@ -21,7 +64,7 @@ To maintain an Agile workflow and ensure no one is blocked, use the following me
 
 ---
 
-## 3. AI Usage Guide (Feature Implementation)
+## 4. AI Usage Guide (Feature Implementation)
 When using AI to help develop a specific feature, follow this strict sequence to ensure clean and integrated code:
 
 1.  **Branch Check:** Ensure your specific feature branch is created and active.
@@ -33,7 +76,7 @@ When using AI to help develop a specific feature, follow this strict sequence to
 
 ---
 
-## 4. Step-by-Step Feature Implementation List
+## 5. Step-by-Step Feature Implementation List
 
 ### Phase 1: Infrastructure & Setup
 * [ ] **Frontend (HajiAlirezaei):** Initialize the frontend framework (React/Vue) and setup styling tools/folder structure.
