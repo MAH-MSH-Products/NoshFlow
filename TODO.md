@@ -163,3 +163,30 @@ Understanding dependencies is crucial to know when a team member might be blocke
 * **Phase 7: Security & Bonus Features**
   * **Prerequisite:** Flawless operation of the main project workflow (all previous phases).
   * **Details:** You cannot implement the "Automatic Stock Reduction" feature unless the order submission cycle is fully complete and bug-free. Similarly, creating `audit_logs` for order status changes is completely dependent on the completion of the staff dashboards from Phase 5.
+
+## 6. Project Directories and Structure
+```
+NoshFlow/
+│
+├── backend/ # HamidiFard workspace
+│ ├── src/
+│ │ ├── config/ # MongoDB database connection interface
+│ │ ├── controllers/ # API core logic
+│ │ ├── middlewares/ # Authentication functions (JWT) and RBAC
+│ │ ├── models/ # Database collection schema
+│ │ └── routes/ # Express-related endpoints
+│ ├── .env # Sensitive environment variables (port, secret key, etc.)
+│ └── server.js # Backend server entry point
+│
+├── frontend/ # HajiAlirezaei workspace
+│ ├── src/
+│ │ ├── assets/ # Images, icons, and generic CSS files
+│ │ ├── components/ # Reusable components (menu cards, buttons)
+│ │ ├── pages/ # Main pages (Customer Dashboard, Kitchen Panel)
+│ │ ├── services/ # Fetch API logic to connect to the server
+│ │ └── utils/ # Helper functions (like price or date formatting)
+│
+├── .gitignore # To prevent uploading the node_modules folder and .env file to GitHub
+├── README.md # Documentation for introducing and implementing the project for the teacher
+└── TODO.md
+```
