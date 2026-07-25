@@ -80,7 +80,7 @@ When using AI to help develop a specific feature, follow this strict sequence to
 
 ### Phase 1: Infrastructure & Setup
 * [ ] **Frontend (HajiAlirezaei):** Initialize the frontend framework (React/Vue) and setup styling tools/folder structure.
-    * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
+    * *Status:* ✅ Done
     * *Handoff Message:* "Frontend infrastructure is ready."
 * [ ] **Backend (HamidiFard):** Setup Node.js, Express.js, and connect to the MongoDB database.
     * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
@@ -91,7 +91,7 @@ When using AI to help develop a specific feature, follow this strict sequence to
     * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
     * *Handoff Message:* "Auth APIs are ready. JWT is being generated."
 * [ ] **Frontend (HajiAlirezaei):** Design Login/Register forms, implement frontend validation, store JWT securely in the browser, and attach it to API request headers.
-    * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
+    * *Status:* ✅ Done
     * *Handoff Message:* "Auth forms are connected to the API and JWT is stored."
 
 ### Phase 3: Menu & Cart Logic
@@ -190,3 +190,10 @@ NoshFlow/
 ├── README.md # Documentation for introducing and implementing the project for the teacher
 └── TODO.md
 ```
+## 7. PENDING Guide (Blocked Tasks & Waiting List)
+To manage cross-dependencies and prevent the development process from being blocked, we use the `PENDING.md` file. The rules for utilizing this file are as follows:
+
+* **Purpose:** To transparently and accurately track tasks that you need your teammate to complete so you can finish a phase (e.g., Frontend waiting for an API, or Backend waiting for an agreed JSON structure).
+* **When to use (Crucial):** You are **only allowed** to add an item to the `PENDING.md` file if you have already started and fully implemented your independent portion of that phase (e.g., Frontend has built the forms with Mock Data, or Backend has written the core controllers).
+* **When NOT to use:** If you have not yet started your own tasks for a phase, you must not write anything in this file. You cannot be "waiting" on a teammate if your own foundational code for that phase hasn't been written! Progress as far as possible independently first, and only log an item here when you are genuinely blocked.
+* **Resolution:** Once the requested task is completed and pushed by the other developer, the person who resolved the blocker is responsible for striking through or deleting the corresponding item from `PENDING.md`.
