@@ -1,0 +1,122 @@
+# FoodOps Project - TODO & Workflow Guide
+
+## 1. General Git & Branching Guide
+Before starting any feature, ensure the correct branch is created and you are isolated from the main codebase.
+
+1.  **Sync with main development:** Run `git checkout develop` and `git pull`.
+2.  **Frontend (HajiAlirezaei):** Create your branch using `git checkout -b feature/fe-<feature_name>`.
+3.  **Backend (HamidiFard):** Create your branch using `git checkout -b feature/be-<feature_name>`.
+4.  **Completion:** Never commit directly to `develop` or `main`. Once a feature is done and tested, open a Pull Request (PR) to merge into `develop`.
+
+---
+
+## 2. Team Communication & Handoff Protocol
+To maintain an Agile workflow and ensure no one is blocked, use the following message templates in your team chat to signal your status:
+
+* 🟢 **Start:** "I have created the branch `feature/<name>` and started working on `<feature>`."
+* 🟡 **Frontend Mocking:** "I am building the UI with mock data while waiting for the Backend API."
+* 🔵 **Backend Done (Handoff):** "I have completed the backend API for `<feature>` and pushed the code. You can integrate it now."
+* 🟠 **Frontend Waiting:** "I have finished the UI. Waiting for the API endpoints to connect them."
+* ✅ **Integration & Test:** "Integration is complete. Tested successfully / Bugs found."
+
+---
+
+## 3. AI Usage Guide (Feature Implementation)
+When using AI to help develop a specific feature, follow this strict sequence to ensure clean and integrated code:
+
+1.  **Branch Check:** Ensure your specific feature branch is created and active.
+2.  **API Contract Agreement:** Before asking the AI to write code, Frontend and Backend must agree on the JSON structure for the request/response.
+3.  **Prompting the AI:** * **Frontend Prompting:** Tell the AI: *"I am working on the Frontend using React/Vue. Here is the agreed JSON API response. Generate the UI component and the Fetch API logic using mock data."*
+    * **Backend Prompting:** Tell the AI: *"I am working on the Backend using Node.js/Express and MongoDB. Here is the agreed JSON contract. Generate the Mongoose schema and the Express route controller for this endpoint."*
+
+*(Note: The exact, detailed prompts for each specific feature will be provided in the next sequence as requested).*
+
+---
+
+## 4. Step-by-Step Feature Implementation List
+
+### Phase 1: Infrastructure & Setup
+* [ ] **Frontend (HajiAlirezaei):** Initialize the frontend framework (React/Vue) and setup styling tools/folder structure.
+    * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
+    * *Handoff Message:* "Frontend infrastructure is ready."
+* [ ] **Backend (HamidiFard):** Setup Node.js, Express.js, and connect to the MongoDB database.
+    * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
+    * *Handoff Message:* "Server is up and connected to the database."
+
+### Phase 2: Database & Authentication
+* [ ] **Backend (HamidiFard):** Design Collections (`Users`, `Roles`), implement Registration/Login routes, generate JWT, apply `bcrypt` password hashing, and setup RBAC middleware.
+    * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
+    * *Handoff Message:* "Auth APIs are ready. JWT is being generated."
+* [ ] **Frontend (HajiAlirezaei):** Design Login/Register forms, implement frontend validation, store JWT securely in the browser, and attach it to API request headers.
+    * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
+    * *Handoff Message:* "Auth forms are connected to the API and JWT is stored."
+
+### Phase 3: Menu & Cart Logic
+* [ ] **Backend (HamidiFard):** Design `MenuItems` and `Categories` collections. Write APIs to fetch the menu list. **Crucial:** Implement server-side price calculation and validation (do not trust client-side prices).
+    * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
+    * *Handoff Message:* "Menu APIs are ready and price validation is strict on the server."
+* [ ] **Frontend (HajiAlirezaei):** Design menu cards UI (name, description, price, add button). Implement cart state management in the browser and DOM events for adding/removing items.
+    * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
+    * *Handoff Message:* "Menu UI is displaying data and Cart logic works."
+
+### Phase 4: Order Management (Customer)
+* [ ] **Backend (HamidiFard):** Write the final order submission API. Set the initial order status to "Registered" (`ثبت‌‌شده`) and design the `Orders` collection.
+    * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
+    * *Handoff Message:* "Order submission API is live."
+* [ ] **Frontend (HajiAlirezaei):** Design the order tracking page for the customer, utilizing colored labels to differentiate order statuses.
+    * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
+    * *Handoff Message:* "Customer order tracking UI is connected."
+
+### Phase 5: Staff Dashboards (Kitchen & Cashier)
+* [ ] **Backend (HamidiFard):** Write APIs to update order statuses sequentially (Preparing -> Ready for Delivery -> Delivered). Ensure Role-Based Access Control so only specific staff can trigger these updates.
+    * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
+    * *Handoff Message:* "Status update APIs are ready for staff."
+* [ ] **Frontend (HajiAlirezaei):** Design separate, distinct panels for Kitchen staff (to view the queue) and the Cashier (for final delivery). Add status update buttons connected to the API.
+    * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
+    * *Handoff Message:* "Staff dashboards are ready and buttons change order statuses."
+
+### Phase 6: Admin Panel & Reports
+* [ ] **Backend (HamidiFard):** Write APIs for managing user roles, fetching daily sales statistics, and generating data for charts.
+    * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
+    * *Handoff Message:* "Admin and Reporting APIs are providing data."
+* [ ] **Frontend (HajiAlirezaei):** Design the Admin panel to manage the menu. Implement graphical charts to display daily sales and reports visually.
+    * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
+    * *Handoff Message:* "Admin UI and charts are successfully rendering data."
+
+### Phase 7: Security & Bonus Features
+* [ ] **Backend (HamidiFard):** Implement NoSQL Injection prevention. Add bonus logic: automatically reduce item stock upon order, and create an `audit_logs` collection to track exact order status history.
+    * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
+* [ ] **Frontend (HajiAlirezaei):** Implement bonus logic: Search and filter functionality for menu items, display approximate prep time, and visually disable "Add to cart" buttons for out-of-stock items.
+    * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
+
+## 5. Project Dependencies & Blockers
+
+Understanding dependencies is crucial to know when a team member might be blocked and needs to wait for the other's output. Below are the dependencies for each phase to add to your `TODO.md` file:
+
+* **Phase 1: Infrastructure & Setup**
+  * **Prerequisite:** None.
+  * **Details:** This is the starting point for both. HajiAlirezaei can set up the frontend folders, and HamidiFard can initialize the server and database independently.
+
+* **Phase 2: Database & Authentication**
+  * **Prerequisite:** Completion of Phase 1.
+  * **Blockers:** Parallel development is entirely possible here. However, the Frontend (HajiAlirezaei) is blocked from doing the final test of storing the JWT until the Backend (HamidiFard) has fully implemented the JWT generation system.
+
+* **Phase 3: Menu & Cart Logic**
+  * **Prerequisite:** Completion of Phase 2 (Specifically Authentication).
+  * **Blockers:** The Frontend can build the cart's UI using mock data, but real API integration is blocked until the user can get a valid token (so the cart is registered to them). In the backend, the final price calculation is strictly dependent on the database setup, as the server must never trust the price sent from the frontend.
+
+* **Phase 4: Order Management (Customer)**
+  * **Prerequisite:** Completion of Phase 3.
+  * **Details:** An order cannot be submitted until the "Add to Cart" button and the cart logic are working correctly. The output of this phase (an order saved with the "Registered" status) is a critical prerequisite for the next phase.
+
+* **Phase 5: Staff Dashboards (Kitchen & Cashier)**
+  * **Prerequisite:** Completion of Phase 4.
+  * **Details:** Kitchen staff need to view orders in a queue. These are the exact orders submitted by the customer in Phase 4. Therefore, developing these staff panels is impossible without having the customer order registration logic in place first.
+
+* **Phase 6: Admin Panel & Reports**
+  * **Prerequisite:** Completion of Phases 3, 4, and 5.
+  * **Details:** Reports and charts require actual data. Until a menu exists and orders are successfully registered and delivered, there will be no data available to generate "Daily Sales Reports" or to manage users.
+
+* **Phase 7: Security & Bonus Features**
+  * **Prerequisite:** Flawless operation of the main project workflow (all previous phases).
+  * **Details:** You cannot implement the "Automatic Stock Reduction" feature unless the order submission cycle is fully complete and bug-free. Similarly, creating `audit_logs` for order status changes is completely dependent on the completion of the staff dashboards from Phase 5.
