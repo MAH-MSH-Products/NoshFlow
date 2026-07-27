@@ -8,6 +8,7 @@ const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const menuRoutes = require('./routes/menuRoutes');
 const orderRoutes = require('./routes/orderRoutes');
+const discountRoutes = require('./routes/discountRoutes');
 
 // Initialize the Express application
 const app = express();
@@ -32,6 +33,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/auth', authRoutes);
 app.use('/api', menuRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/discounts', discountRoutes);
 
 // A basic health check route to verify the server is running
 app.get('/api/health', (req, res) => {

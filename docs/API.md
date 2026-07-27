@@ -80,7 +80,38 @@ Base URL: `http://localhost:5000`
 
 ---
 
-## 3. Admin Category APIs
+## 4. Discount APIs (Public/Customer)
+
+### Validate & Calculate Discount
+- **URL**: `/api/discounts/validate`
+- **Method**: `POST`
+- **Access**: Private (Requires JWT, Role: Customer)
+- **Content-Type**: `application/json`
+- **Body Payload**:
+  ```json
+  {
+    "code": "SUMMER20",
+    "items": [
+      { "menuItem": "64abcdef1234567890abcdef", "quantity": 2 }
+    ]
+  }
+  ```
+  *(Note: `items` is optional. If omitted, the API returns the percentage but won't calculate totals)*
+- **Success Response (200 OK)**:
+  ```json
+  {
+    "valid": true,
+    "code": "SUMMER20",
+    "discountPercentage": 20,
+    "originalTotal": 25.98,
+    "discountedTotal": 20.78
+  }
+  ```
+- **Error Responses (400 Bad Request)**: Returns specific errors if the code is invalid, expired, reached max uses, or if the items provided are out of stock.
+
+---
+
+## 5. Admin Category APIs
 *All routes below require `Authorization: Bearer <token>` header and the authenticated user must have the `Admin` role.*
 
 ### Create Category
@@ -108,7 +139,7 @@ Base URL: `http://localhost:5000`
 
 ---
 
-## 4. Admin Menu Item APIs
+## 6. Admin Menu Item APIs
 *All routes below require `Authorization: Bearer <token>` header and the authenticated user must have the `Admin` role.*
 
 ### Create Menu Item (Supports Image Upload)

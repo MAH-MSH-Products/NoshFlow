@@ -1,5 +1,6 @@
 const Order = require('../models/Order');
 const MenuItem = require('../models/MenuItem');
+const Discount = require('../models/Discount');
 const { calculateOrderTotal } = require('../utils/priceCalculator');
 
 /**
@@ -9,24 +10,48 @@ const { calculateOrderTotal } = require('../utils/priceCalculator');
  */
 const createOrder = async (req, res) => {
   try {
-    const { items } = req.body || {};
+    const { items, discountCode } = req.body || {};
 
     // 1. Calculate price and validate stock entirely on the backend
     // This utilizes our robust calculateOrderTotal utility.
     const { totalCost, processedItems } = await calculateOrderTotal(items);
+    
+    let finalTotalCost = totalCost;
+    let appliedDiscount = null;
 
-    // 2. Map items strictly to the Order schema format
+    // 2. Validate and apply Discount if provided
+    if (discountCode) {
+      const discount = await Discount.findOne({ code: discountCode.toUpperCase(), isActive: true });
+      
+      if (!discount) {
+        return res.status(400).json({ message: 'Invalid or inactive discount code' });
+      }
+      if (new Date() > discount.expiresAt) {
+        return res.status(400).json({ message: 'Discount code has expired' });
+      }
+      if (discount.usedCount >= discount.maxUses) {
+        return res.status(400).json({ message: 'Discount code usage limit reached' });
+      }
+
+      // Calculate final total
+      finalTotalCost = totalCost - (totalCost * (discount.discountPercentage / 100));
+      if (finalTotalCost < 0) finalTotalCost = 0; // Prevent negative totals
+      
+      appliedDiscount = discount;
+    }
+
+    // 3. Map items strictly to the Order schema format
     const orderItems = processedItems.map(item => ({
       menuItem: item.menuItem,
       quantity: item.quantity,
       priceAtPurchase: item.priceAtPurchase
     }));
 
-    // 3. Create the order with default "Registered" status
+    // 4. Create the order with default "Registered" status
     const order = await Order.create({
       customer: req.user._id,
       items: orderItems,
-      totalPrice: totalCost,
+      totalPrice: finalTotalCost,
       status: 'Registered'
     });
 
@@ -58,6 +83,29 @@ const createOrder = async (req, res) => {
       await Order.findByIdAndDelete(order._id);
       
       return res.status(409).json({ message: stockError.message });
+    }
+
+    // 6. Atomically update discount usage to prevent race conditions on the discount limit
+    if (appliedDiscount) {
+      const updatedDiscount = await Discount.findOneAndUpdate(
+        { _id: appliedDiscount._id, usedCount: { $lt: appliedDiscount.maxUses } },
+        { $inc: { usedCount: 1 } },
+        { new: true }
+      );
+
+      // If the limit was reached exactly at checkout by concurrent users
+      if (!updatedDiscount) {
+        // Rollback stock decrements
+        for (const successfulItem of successfulDecrements) {
+          await MenuItem.findByIdAndUpdate(successfulItem.menuItem, {
+            $inc: { stock: successfulItem.quantity }
+          });
+        }
+        // Delete the order
+        await Order.findByIdAndDelete(order._id);
+        
+        return res.status(409).json({ message: 'Discount code usage limit reached due to concurrent orders. Order cancelled.' });
+      }
     }
 
     res.status(201).json(order);
