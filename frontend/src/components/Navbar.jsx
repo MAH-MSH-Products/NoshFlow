@@ -8,7 +8,6 @@ export default function Navbar() {
         <nav className="bg-white shadow-sm sticky top-0 z-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-16">
-                    {/* Logo & Main Links */}
                     <div className="flex items-center gap-8">
                         <Link to="/" className="text-2xl font-extrabold text-blue-600 tracking-tight">
                             FoodOps
@@ -24,14 +23,12 @@ export default function Navbar() {
                                 Kitchen
                             </Link>
                             <Link to="/cashier" className="text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md font-medium transition-colors">
-                                Kitchen
+                                Cashier
                             </Link>
                         </div>
                     </div>
 
-                    {/* Auth & Cart Links */}
                     <div className="flex items-center space-x-6">
-                        {/* Cart Link with Badge */}
                         <Link to="/cart" className="relative text-gray-600 hover:text-blue-600 font-medium transition-colors flex items-center gap-1">
                             <span>Cart</span>
                             {cartCount > 0 && (

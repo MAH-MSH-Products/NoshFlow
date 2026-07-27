@@ -1,21 +1,25 @@
 import { useState, useEffect } from 'react';
 
-export default function CashierDashboard() {
+export default function KitchenDashboard() {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
     const fetchOrders = async () => {
         try {
             const token = localStorage.getItem("token");
-            const response = await fetch("http://localhost:5000/api/orders", {
+            const response = await fetch("http://127.0.0.1:5000/api/kitchen/orders", {
                 headers: { "Authorization": `Bearer ${token}` }
             });
+            const data = await response.json();
+
             if (response.ok) {
-                const data = await response.json();
                 setOrders(data);
+            } else {
+                setError(data.message || "Failed to load orders. Are you logged in as Kitchen Staff?");
             }
         } catch (err) {
-            console.error("Failed to fetch orders", err);
+            setError("Connection error. Server might be down.");
         } finally {
             setLoading(false);
         }
@@ -27,90 +31,115 @@ export default function CashierDashboard() {
         return () => clearInterval(interval);
     }, []);
 
-    const completeOrder = async (id) => {
+    const updateStatus = async (id, newStatus) => {
         try {
             const token = localStorage.getItem("token");
-            const response = await fetch(`http://localhost:5000/api/orders/${id}/status`, {
+
+            let endpoint = "";
+            if (newStatus === 'preparing') {
+                endpoint = `http://127.0.0.1:5000/api/orders/${id}/start`;
+            } else if (newStatus === 'ready') {
+                endpoint = `http://127.0.0.1:5000/api/orders/${id}/ready`;
+            }
+
+            const response = await fetch(endpoint, {
                 method: "PATCH",
                 headers: {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${token}`
-                },
-                body: JSON.stringify({ status: 'completed' })
+                }
             });
 
             if (response.ok) {
                 setOrders(prevOrders =>
                     prevOrders.map(order =>
-                        order._id === id ? { ...order, status: 'completed' } : order
+                        order._id === id ? { ...order, status: newStatus } : order
                     )
                 );
             } else {
-                alert("Failed to complete order. Please check permissions.");
+                const data = await response.json();
+                alert(data.message || "Failed to update status");
             }
         } catch (error) {
-            alert("Network error.");
+            alert("Network error while updating status.");
         }
     };
 
-    const readyOrders = orders.filter(o => o.status.toLowerCase() === 'ready');
-    const completedOrders = orders.filter(o => o.status.toLowerCase() === 'completed');
+    const renderOrderCard = (order, nextStatus, buttonText, buttonColor) => (
+        <div key={order._id} className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-4 flex flex-col">
+            <div className="flex justify-between items-center mb-3">
+                <span className="font-extrabold text-gray-800 text-sm">#{order._id.slice(-6)}</span>
+                <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-1 rounded-md">
+                    {new Date(order.createdAt).toLocaleTimeString()}
+                </span>
+            </div>
+            <ul className="mb-4 text-sm text-gray-700 flex-grow space-y-1">
+                {order.items.map((item, index) => (
+                    <li key={index} className="flex items-start">
+                        <span className="font-bold mr-2">{item.quantity}x</span>
+                        {item.menuItem?.title || "Food Item"}
+                    </li>
+                ))}
+            </ul>
+            {nextStatus && (
+                <button
+                    onClick={() => updateStatus(order._id, nextStatus)}
+                    className={`w-full py-2 mt-auto rounded-lg text-white font-bold transition-colors shadow-sm ${buttonColor}`}
+                >
+                    {buttonText}
+                </button>
+            )}
+        </div>
+    );
 
-    if (loading && orders.length === 0) return <div className="text-center mt-20 text-xl font-bold">Loading Cashier... 💵</div>;
+    if (loading && orders.length === 0) return <div className="text-center mt-20 text-xl font-bold">Loading Orders... ⏳</div>;
+    if (error) return <div className="text-center mt-20 text-red-500 font-bold">{error}</div>;
 
     return (
         <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto">
                 <h1 className="text-3xl font-extrabold text-gray-900 mb-8 flex justify-between items-center">
-                    <span>Cashier Dashboard 💵</span>
+                    <span>Kitchen Dashboard 👨‍🍳</span>
                     <button onClick={fetchOrders} className="text-sm bg-gray-200 hover:bg-gray-300 text-gray-800 py-1 px-3 rounded-lg">
                         🔄 Refresh
                     </button>
                 </h1>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {/* Orders Ready for Pickup */}
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-green-200">
-                        <h2 className="text-xl font-bold text-green-700 mb-6 border-b border-green-100 pb-2">
-                            Ready for Delivery ({readyOrders.length})
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="bg-red-50 p-4 rounded-2xl border border-red-100">
+                        <h2 className="text-lg font-bold text-red-800 mb-4 flex items-center justify-between border-b border-red-200 pb-2">
+                            <span>Pending</span>
+                            <span className="bg-red-200 text-red-800 text-xs px-2 py-1 rounded-full">
+                                {orders.filter(o => o.status.toLowerCase() === 'pending').length}
+                            </span>
                         </h2>
-                        {readyOrders.length === 0 && <p className="text-gray-500">No orders waiting.</p>}
-
-                        <div className="space-y-4">
-                            {readyOrders.map(order => (
-                                <div key={order._id} className="bg-green-50 p-4 rounded-xl border border-green-100 flex justify-between items-center">
-                                    <div>
-                                        <h3 className="font-extrabold text-gray-900">#{order._id.slice(-6)}</h3>
-                                        <p className="text-sm font-semibold text-gray-700">
-                                            User ID: {order.user?.slice(-4) || "Guest"}
-                                        </p>
-                                        <p className="text-xs text-gray-500 mt-1">Total: <span className="font-bold text-green-700">${order.totalPrice?.toFixed(2)}</span></p>
-                                    </div>
-                                    <button
-                                        onClick={() => completeOrder(order._id)}
-                                        className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-sm"
-                                    >
-                                        Deliver & Complete
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
+                        {orders.filter(o => o.status.toLowerCase() === 'pending').map(order =>
+                            renderOrderCard(order, 'preparing', 'Start Preparing', 'bg-blue-500 hover:bg-blue-600')
+                        )}
                     </div>
 
-                    {/* Completed Orders Log */}
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 opacity-80">
-                        <h2 className="text-xl font-bold text-gray-700 mb-6 border-b border-gray-100 pb-2">
-                            Completed Today ({completedOrders.length})
+                    <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100">
+                        <h2 className="text-lg font-bold text-blue-800 mb-4 flex items-center justify-between border-b border-blue-200 pb-2">
+                            <span>Preparing</span>
+                            <span className="bg-blue-200 text-blue-800 text-xs px-2 py-1 rounded-full">
+                                {orders.filter(o => o.status.toLowerCase() === 'preparing').length}
+                            </span>
                         </h2>
-                        <div className="space-y-3">
-                            {completedOrders.map(order => (
-                                <div key={order._id} className="bg-gray-50 p-3 rounded-lg border border-gray-100 flex justify-between items-center text-gray-600">
-                                    <span className="font-bold">#{order._id.slice(-6)}</span>
-                                    <span>${order.totalPrice?.toFixed(2)}</span>
-                                    <span className="text-green-600 font-bold">Paid & Delivered ✅</span>
-                                </div>
-                            ))}
-                        </div>
+                        {orders.filter(o => o.status.toLowerCase() === 'preparing').map(order =>
+                            renderOrderCard(order, 'ready', 'Mark as Ready', 'bg-green-500 hover:bg-green-600')
+                        )}
+                    </div>
+
+                    <div className="bg-green-50 p-4 rounded-2xl border border-green-100">
+                        <h2 className="text-lg font-bold text-green-800 mb-4 flex items-center justify-between border-b border-green-200 pb-2">
+                            <span>Ready for Cashier</span>
+                            <span className="bg-green-200 text-green-800 text-xs px-2 py-1 rounded-full">
+                                {orders.filter(o => o.status.toLowerCase() === 'ready').length}
+                            </span>
+                        </h2>
+                        {orders.filter(o => o.status.toLowerCase() === 'ready').map(order =>
+                            renderOrderCard(order, null, '', '')
+                        )}
                     </div>
                 </div>
             </div>
