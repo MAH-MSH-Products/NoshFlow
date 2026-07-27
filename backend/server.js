@@ -5,6 +5,7 @@ const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
+const menuRoutes = require('./routes/menuRoutes');
 
 // Initialize the Express application
 const app = express();
@@ -24,6 +25,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // --- Routes ---
 app.use('/api/auth', authRoutes);
+app.use('/api', menuRoutes);
 
 // A basic health check route to verify the server is running
 app.get('/api/health', (req, res) => {
