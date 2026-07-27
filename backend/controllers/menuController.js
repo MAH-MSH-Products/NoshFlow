@@ -94,7 +94,7 @@ const getMenuItemById = async (req, res) => {
  */
 const createCategory = async (req, res) => {
   try {
-    const { name, description } = req.body;
+    const { name, description } = req.body || {};
     if (!name) return res.status(400).json({ message: 'Category name is required' });
 
     const categoryExists = await Category.findOne({ name });
@@ -115,7 +115,7 @@ const createCategory = async (req, res) => {
  */
 const updateCategory = async (req, res) => {
   try {
-    const { name, description } = req.body;
+    const { name, description } = req.body || {};
     
     const category = await Category.findById(req.params.id);
     if (!category) return res.status(404).json({ message: 'Category not found' });
@@ -170,7 +170,7 @@ const deleteCategory = async (req, res) => {
  */
 const createMenuItem = async (req, res) => {
   try {
-    const { name, description, price, stock, image, category } = req.body;
+    const { name, description, price, stock, image, category } = req.body || {};
 
     // Handle physical file upload if present, otherwise fallback to URL string from body
     let finalImage = image || '';
@@ -209,7 +209,7 @@ const createMenuItem = async (req, res) => {
  */
 const updateMenuItem = async (req, res) => {
   try {
-    const { name, description, price, image, category } = req.body;
+    const { name, description, price, image, category } = req.body || {};
     
     const menuItem = await MenuItem.findById(req.params.id);
     if (!menuItem) return res.status(404).json({ message: 'Menu item not found' });
@@ -247,7 +247,7 @@ const updateMenuItem = async (req, res) => {
  */
 const updateMenuItemStock = async (req, res) => {
   try {
-    const { stock } = req.body;
+    const { stock } = req.body || {};
     
     if (stock === undefined || typeof stock !== 'number' || stock < 0) {
       return res.status(400).json({ message: 'Please provide a valid numeric stock value (0 or greater)' });
