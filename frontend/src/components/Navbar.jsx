@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
-import { useCart } from '../context/CartContext'; // <-- Import the hook
+import { useCart } from '../context/CartContext';
 
 export default function Navbar() {
-    const { cartCount } = useCart(); // <-- Get the total items count
+    const { cartCount } = useCart();
 
     return (
         <nav className="bg-white shadow-sm sticky top-0 z-50">
@@ -19,6 +19,12 @@ export default function Navbar() {
                             </Link>
                             <Link to="/menu" className="text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md font-medium transition-colors">
                                 Menu
+                            </Link>
+                            <Link to="/kitchen" className="text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md font-medium transition-colors">
+                                Kitchen
+                            </Link>
+                            <Link to="/cashier" className="text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md font-medium transition-colors">
+                                Kitchen
                             </Link>
                         </div>
                     </div>
