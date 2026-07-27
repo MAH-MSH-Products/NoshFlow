@@ -12,8 +12,7 @@ export default function Menu() {
     useEffect(() => {
         const fetchMenu = async () => {
             try {
-                const response = await fetch("http://localhost:5000/api/menu");
-                const data = await response.json();
+                const response = await fetch("http://127.0.0.1:5000/api/menu/menu-items");                const data = await response.json();
 
                 if (response.ok) {
                     const availableItems = data.filter(item => item.isAvailable !== false);

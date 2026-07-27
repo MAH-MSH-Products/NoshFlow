@@ -8,7 +8,7 @@ export default function KitchenDashboard() {
     const fetchOrders = async () => {
         try {
             const token = localStorage.getItem("token");
-            const response = await fetch("http://localhost:5000/api/orders", {
+            const response = await fetch("http://127.0.0.1:5000/api/kitchen/orders", {
                 headers: { "Authorization": `Bearer ${token}` }
             });
             const data = await response.json();
@@ -16,7 +16,7 @@ export default function KitchenDashboard() {
             if (response.ok) {
                 setOrders(data);
             } else {
-                setError(data.message || "Failed to load orders");
+                setError(data.message || "Failed to load orders. Are you logged in as Kitchen Staff?");
             }
         } catch (err) {
             setError("Connection error. Server might be down.");
@@ -27,20 +27,27 @@ export default function KitchenDashboard() {
 
     useEffect(() => {
         fetchOrders();
-        const interval = setInterval(fetchOrders, 10000); // Polling
+        const interval = setInterval(fetchOrders, 10000);
         return () => clearInterval(interval);
     }, []);
 
     const updateStatus = async (id, newStatus) => {
         try {
             const token = localStorage.getItem("token");
-            const response = await fetch(`http://localhost:5000/api/orders/${id}/status`, {
+
+            let endpoint = "";
+            if (newStatus === 'preparing') {
+                endpoint = `http://127.0.0.1:5000/api/orders/${id}/start`;
+            } else if (newStatus === 'ready') {
+                endpoint = `http://127.0.0.1:5000/api/orders/${id}/ready`;
+            }
+
+            const response = await fetch(endpoint, {
                 method: "PATCH",
                 headers: {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${token}`
-                },
-                body: JSON.stringify({ status: newStatus }) // ارسال وضعیت جدید به بک‌اند
+                }
             });
 
             if (response.ok) {
@@ -58,7 +65,6 @@ export default function KitchenDashboard() {
         }
     };
 
-    // کامپوننت کارت سفارش
     const renderOrderCard = (order, nextStatus, buttonText, buttonColor) => (
         <div key={order._id} className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-4 flex flex-col">
             <div className="flex justify-between items-center mb-3">
@@ -100,7 +106,6 @@ export default function KitchenDashboard() {
                 </h1>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {/* Column 1: Pending */}
                     <div className="bg-red-50 p-4 rounded-2xl border border-red-100">
                         <h2 className="text-lg font-bold text-red-800 mb-4 flex items-center justify-between border-b border-red-200 pb-2">
                             <span>Pending</span>
@@ -113,7 +118,6 @@ export default function KitchenDashboard() {
                         )}
                     </div>
 
-                    {/* Column 2: Preparing */}
                     <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100">
                         <h2 className="text-lg font-bold text-blue-800 mb-4 flex items-center justify-between border-b border-blue-200 pb-2">
                             <span>Preparing</span>
@@ -126,7 +130,6 @@ export default function KitchenDashboard() {
                         )}
                     </div>
 
-                    {/* Column 3: Ready */}
                     <div className="bg-green-50 p-4 rounded-2xl border border-green-100">
                         <h2 className="text-lg font-bold text-green-800 mb-4 flex items-center justify-between border-b border-green-200 pb-2">
                             <span>Ready for Cashier</span>
