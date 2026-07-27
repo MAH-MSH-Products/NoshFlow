@@ -1,20 +1,26 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import Login from './pages/Login';
-import Register from './pages/Register';
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Navbar from "./components/Navbar";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Menu from "./pages/Menu";
+import { CartProvider } from "./context/CartContext"; // <-- Import Provider
+import Cart from "./pages/Cart";
 
-function App() {
+export default function App() {
     return (
-        <BrowserRouter>
-            <div className="font-sans min-h-screen bg-gray-100">
-                <Routes>
-                    <Route path="/" element={<Navigate to="/login" replace />} />
-
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/register" element={<Register />} />
-                </Routes>
-            </div>
-        </BrowserRouter>
+        <CartProvider> {/* <-- Wrap everything */}
+            <Router>
+                <Navbar />
+                <main>
+                    <Routes>
+                        <Route path="/" element={<div className="flex items-center justify-center min-h-[calc(100vh-64px)] bg-gray-50 text-3xl font-bold text-gray-800">Welcome to FoodOps</div>} />
+                        <Route path="/login" element={<Login />} />
+                        <Route path="/register" element={<Register />} />
+                        <Route path="/menu" element={<Menu />} />
+                        <Route path="/cart" element={<Cart />} />
+                    </Routes>
+                </main>
+            </Router>
+        </CartProvider>
     );
 }
-
-export default App;
