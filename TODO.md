@@ -112,7 +112,7 @@ When using AI to help develop a specific feature, follow this strict sequence to
 
 ### Phase 5: Staff Dashboards (Kitchen & Cashier)
 * [ ] **Backend (HamidiFard):** Write APIs to update order statuses sequentially (Preparing -> Ready for Delivery -> Delivered). Ensure Role-Based Access Control so only specific staff can trigger these updates.
-    * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
+    * *Status:* ✅ Done
     * *Handoff Message:* "Status update APIs are ready for staff."
 * [ ] **Frontend (HajiAlirezaei):** Design separate, distinct panels for Kitchen staff (to view the queue) and the Cashier (for final delivery). Add status update buttons connected to the API.
     * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
