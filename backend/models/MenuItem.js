@@ -15,9 +15,11 @@ const menuItemSchema = new mongoose.Schema({
     required: true,
     min: 0
   },
-  availability_status: {
-    type: Boolean,
-    default: true
+  stock: {
+    type: Number,
+    required: true,
+    min: 0,
+    default: 0
   },
   image: {
     type: String,

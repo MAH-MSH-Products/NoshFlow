@@ -26,8 +26,8 @@ const calculateOrderTotal = async (itemsArray) => {
       throw new Error(`Menu item with ID ${menuItemId} not found`);
     }
 
-    if (!menuItem.availability_status) {
-      throw new Error(`Menu item '${menuItem.name}' is currently out of stock`);
+    if (menuItem.stock < quantity) {
+      throw new Error(`Not enough stock for '${menuItem.name}'. Requested: ${quantity}, Available: ${menuItem.stock}`);
     }
 
     // Calculate strict backend price
