@@ -15,7 +15,7 @@ const generateToken = (id) => {
  */
 const register = async (req, res) => {
   try {
-    const { username, email, password, roleName } = req.body;
+    const { username, email, password, roleName } = req.body || {};
 
     // Basic input validation
     if (!username || !email || !password) {
@@ -70,7 +70,7 @@ const register = async (req, res) => {
  */
 const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password } = req.body || {};
 
     if (!email || !password) {
       return res.status(400).json({ message: 'Please provide email and password' });
