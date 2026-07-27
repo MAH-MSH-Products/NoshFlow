@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function Login() {
     const [formData, setFormData] = useState({
@@ -8,6 +8,7 @@ export default function Login() {
     });
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState({ type: "", text: "" });
+    const navigate = useNavigate();
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -18,19 +19,35 @@ export default function Login() {
         setLoading(true);
         setMessage({ type: "", text: "" });
 
-        // Mock API Request for Login
         try {
-            console.log("Mock Login Request Data:", formData);
+            const response = await fetch("http://localhost:5000/api/auth/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(formData),
+            });
 
-            setTimeout(() => {
-                setMessage({ type: "success", text: "Login successful! (Mock JWT Received)" });
-                setLoading(false);
-                // در آینده کد زیر برای ذخیره توکن واقعی اضافه می‌شود:
-                // localStorage.setItem("token", "mock-jwt-token-12345");
-            }, 1500);
+            const data = await response.json();
 
+            if (response.ok) {
+                setMessage({ type: "success", text: "Login successful!" });
+
+                // Save the real JWT token to localStorage
+                localStorage.setItem("token", data.token);
+                // Optionally save user data
+                localStorage.setItem("user", JSON.stringify({ name: data.name, role: data.role }));
+
+                // Redirect to a dashboard or home page after short delay
+                setTimeout(() => {
+                    navigate("/"); // Change this to your desired route
+                }, 1000);
+            } else {
+                setMessage({ type: "error", text: data.message || "Invalid credentials." });
+            }
         } catch (error) {
-            setMessage({ type: "error", text: "Invalid credentials or connection error." });
+            setMessage({ type: "error", text: "Connection error. Is the server running?" });
+        } finally {
             setLoading(false);
         }
     };

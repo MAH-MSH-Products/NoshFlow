@@ -1,5 +1,5 @@
 import { useState } from "react";
-import {Link} from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function Register() {
     const [formData, setFormData] = useState({
@@ -9,6 +9,7 @@ export default function Register() {
     });
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState({ type: "", text: "" });
+    const navigate = useNavigate();
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -26,17 +27,33 @@ export default function Register() {
             return;
         }
 
-        // Mock API Request
         try {
-            console.log("Mock Request Data:", formData);
+            const response = await fetch("http://localhost:5000/api/auth/register", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(formData),
+            });
 
-            setTimeout(() => {
-                setMessage({ type: "success", text: "Registration successful! (Mock Data)" });
-                setLoading(false);
-            }, 1500);
+            const data = await response.json();
 
+            if (response.ok) {
+                setMessage({ type: "success", text: "Registration successful! Redirecting..." });
+
+                // Backend auto-logs in the user by sending a token back on register
+                localStorage.setItem("token", data.token);
+                localStorage.setItem("user", JSON.stringify({ name: data.name, role: data.role }));
+
+                setTimeout(() => {
+                    navigate("/"); // Redirect to main app
+                }, 1500);
+            } else {
+                setMessage({ type: "error", text: data.message || "Registration failed." });
+            }
         } catch (error) {
-            setMessage({ type: "error", text: "Connection error." });
+            setMessage({ type: "error", text: "Connection error. Is the server running?" });
+        } finally {
             setLoading(false);
         }
     };
