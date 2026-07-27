@@ -15,11 +15,11 @@ const generateToken = (id) => {
  */
 const register = async (req, res) => {
   try {
-    const { username, email, password, roleName } = req.body || {};
+    const { name, email, password, roleName } = req.body || {};
 
     // Basic input validation
-    if (!username || !email || !password) {
-      return res.status(400).json({ message: 'Please provide all required fields (username, email, password)' });
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: 'Please provide all required fields (name, email, password)' });
     }
 
     // Check if user exists
@@ -41,7 +41,7 @@ const register = async (req, res) => {
 
     // Create user
     const user = await User.create({
-      username,
+      name,
       email,
       password,
       role: role._id
@@ -50,7 +50,7 @@ const register = async (req, res) => {
     if (user) {
       res.status(201).json({
         _id: user._id,
-        username: user.username,
+        name: user.name,
         email: user.email,
         role: role.name,
         token: generateToken(user._id)
@@ -83,7 +83,7 @@ const login = async (req, res) => {
     if (user && (await user.comparePassword(password))) {
       res.json({
         _id: user._id,
-        username: user.username,
+        name: user.name,
         email: user.email,
         role: user.role.name,
         token: generateToken(user._id)
