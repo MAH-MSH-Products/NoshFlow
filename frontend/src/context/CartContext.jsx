@@ -9,15 +9,13 @@ export const useCart = () => useContext(CartContext);
 export const CartProvider = ({ children }) => {
     const [cartItems, setCartItems] = useState([]);
 
-    // Add item to cart or increase quantity if it already exists
+// Add item to cart or increase quantity if it already exists
     const addToCart = (food) => {
         setCartItems((prevItems) => {
-            const existingItem = prevItems.find((item) => item.id === food.id);
+            const existingItem = prevItems.find((item) => item._id === food._id);
             if (existingItem) {
                 return prevItems.map((item) =>
-                    item.id === food.id
-                        ? { ...item, quantity: item.quantity + 1 }
-                        : item
+                    item._id === food._id ? { ...item, quantity: item.quantity + 1 } : item
                 );
             }
             return [...prevItems, { ...food, quantity: 1 }];
@@ -26,14 +24,14 @@ export const CartProvider = ({ children }) => {
 
     // Remove item completely
     const removeFromCart = (id) => {
-        setCartItems((prevItems) => prevItems.filter((item) => item.id !== id));
+        setCartItems((prevItems) => prevItems.filter((item) => item._id !== id));
     };
 
     // Increase or decrease quantity
     const updateQuantity = (id, amount) => {
         setCartItems((prevItems) =>
             prevItems.map((item) => {
-                if (item.id === id) {
+                if (item._id === id) {
                     const newQuantity = item.quantity + amount;
                     return { ...item, quantity: newQuantity > 0 ? newQuantity : 1 };
                 }
