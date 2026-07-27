@@ -3,7 +3,7 @@ const MenuItem = require('../models/MenuItem');
 /**
  * Calculates the total order cost strictly on the backend to prevent frontend price manipulation.
  * @param {Array} itemsArray - Array of objects containing { menuItemId, quantity }
- * @returns {Number} - The total cost of the order
+ * @returns {Object} - { totalCost, processedItems }
  */
 const calculateOrderTotal = async (itemsArray) => {
   if (!itemsArray || !Array.isArray(itemsArray) || itemsArray.length === 0) {
@@ -11,6 +11,7 @@ const calculateOrderTotal = async (itemsArray) => {
   }
 
   let totalCost = 0;
+  const processedItems = [];
 
   for (const item of itemsArray) {
     const { menuItemId, quantity } = item;
@@ -32,9 +33,17 @@ const calculateOrderTotal = async (itemsArray) => {
 
     // Calculate strict backend price
     totalCost += menuItem.price * quantity;
+    
+    // Store the processed data for the controller to use
+    processedItems.push({
+      menuItem: menuItem._id,
+      quantity,
+      priceAtPurchase: menuItem.price,
+      document: menuItem // Pass the raw document so we can decrement stock later
+    });
   }
 
-  return totalCost;
+  return { totalCost, processedItems };
 };
 
 module.exports = { calculateOrderTotal };
