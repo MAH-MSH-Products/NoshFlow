@@ -25,6 +25,9 @@ export default function Navbar() {
                             <Link to="/cashier" className="text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md font-medium transition-colors">
                                 Cashier
                             </Link>
+                            <Link to="/admin" className="text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md font-medium transition-colors">
+                                Admin
+                            </Link>
                         </div>
                     </div>
 
