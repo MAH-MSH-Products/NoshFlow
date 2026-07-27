@@ -23,10 +23,6 @@ const deliveryAuth = [protect, authorize(['Admin', 'Cashier'])];
 // STATIC ROUTES (MUST come before /:id routes)
 // ==========================================
 
-// Staff GET Routes
-router.get('/kitchen', kitchenAuth, getKitchenOrders);
-router.get('/delivery', deliveryAuth, getDeliveryOrders);
-
 // Customer GET / POST Routes
 router.post('/', customerAuth, checkWorkingHours, createOrder);
 router.get('/me', customerAuth, getMyOrders);
