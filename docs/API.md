@@ -80,7 +80,42 @@ Base URL: `http://localhost:5000`
 
 ---
 
-## 4. Discount APIs (Public/Customer)
+## 3. Customer Order APIs
+*All routes below require `Authorization: Bearer <token>` header and the authenticated user must have the `Customer` role.*
+
+### Submit a New Order
+- **URL**: `/api/orders`
+- **Method**: `POST`
+- **Content-Type**: `application/json`
+- **Body Payload**:
+  ```json
+  {
+    "items": [
+      { "menuItem": "64abcdef1234567890abcdef", "quantity": 2 }
+    ],
+    "discountCode": "SUMMER20" // Optional
+  }
+  ```
+- **Success Response (201 Created)**: Returns the complete order with total price, status, and actively decrements inventory stock. (Blocked if outside working hours).
+
+### Get My Orders
+- **URL**: `/api/orders/me`
+- **Method**: `GET`
+- **Success Response (200 OK)**: Returns an array of the user's orders (newest first).
+
+### Get Specific Order
+- **URL**: `/api/orders/:id`
+- **Method**: `GET`
+- **Success Response (200 OK)**: Returns the requested order.
+
+### Cancel Order
+- **URL**: `/api/orders/:id/cancel`
+- **Method**: `PATCH`
+- **Business Rule**: Can only be cancelled if the status is still "Registered".
+
+---
+
+## 4. Customer Discount APIs
 
 ### Validate & Calculate Discount
 - **URL**: `/api/discounts/validate`
@@ -173,4 +208,38 @@ Base URL: `http://localhost:5000`
 
 ### Delete Menu Item
 - **URL**: `/api/menu-items/:id`
+- **Method**: `DELETE`
+
+---
+
+## 7. Admin Discount APIs
+*All routes below require `Authorization: Bearer <token>` header and the authenticated user must have the `Admin` role.*
+
+### Create Discount Code
+- **URL**: `/api/discounts`
+- **Method**: `POST`
+- **Content-Type**: `application/json`
+- **Body Payload**:
+  ```json
+  {
+    "code": "SUMMER20",
+    "discountPercentage": 20,
+    "maxUses": 100,
+    "expiresAt": "2026-12-31T23:59:59.000Z"
+  }
+  ```
+
+### Get All Discounts
+- **URL**: `/api/discounts`
+- **Method**: `GET`
+- **Success Response (200 OK)**: Returns an array of all discount codes.
+
+### Update Discount Code
+- **URL**: `/api/discounts/:id`
+- **Method**: `PATCH`
+- **Content-Type**: `application/json`
+- **Body Payload**: (Any fields to update)
+
+### Delete Discount Code
+- **URL**: `/api/discounts/:id`
 - **Method**: `DELETE`

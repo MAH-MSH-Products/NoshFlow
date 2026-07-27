@@ -104,7 +104,7 @@ When using AI to help develop a specific feature, follow this strict sequence to
 
 ### Phase 4: Order Management (Customer)
 * [ ] **Backend (HamidiFard):** Write the final order submission API. Set the initial order status to "Registered" (`ثبت‌‌شده`) and design the `Orders` collection.
-    * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
+    * *Status:* ✅ Done
     * *Handoff Message:* "Order submission API is live."
 * [ ] **Frontend (HajiAlirezaei):** Design the order tracking page for the customer, utilizing colored labels to differentiate order statuses.
     * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
