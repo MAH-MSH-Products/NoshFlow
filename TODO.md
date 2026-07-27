@@ -83,12 +83,12 @@ When using AI to help develop a specific feature, follow this strict sequence to
     * *Status:* ✅ Done
     * *Handoff Message:* "Frontend infrastructure is ready."
 * [ ] **Backend (HamidiFard):** Setup Node.js, Express.js, and connect to the MongoDB database.
-    * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
+    * *Status:* ✅ Done
     * *Handoff Message:* "Server is up and connected to the database."
 
 ### Phase 2: Database & Authentication
 * [ ] **Backend (HamidiFard):** Design Collections (`Users`, `Roles`), implement Registration/Login routes, generate JWT, apply `bcrypt` password hashing, and setup RBAC middleware.
-    * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
+    * *Status:* ✅ Done
     * *Handoff Message:* "Auth APIs are ready. JWT is being generated."
 * [ ] **Frontend (HajiAlirezaei):** Design Login/Register forms, implement frontend validation, store JWT securely in the browser, and attach it to API request headers.
     * *Status:* ✅ Done
