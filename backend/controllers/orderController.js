@@ -1,4 +1,5 @@
 const Order = require('../models/Order');
+const OrderLog = require('../models/OrderLog');
 const MenuItem = require('../models/MenuItem');
 const Discount = require('../models/Discount');
 const { calculateOrderTotal } = require('../utils/priceCalculator');
@@ -210,9 +211,155 @@ const cancelOrder = async (req, res) => {
   }
 };
 
+// --- STAFF APIs (Phase 5) ---
+
+/**
+ * @desc    Fetch all orders for Kitchen
+ * @route   GET /api/orders/kitchen
+ * @access  Private/Kitchen
+ */
+const getKitchenOrders = async (req, res) => {
+  try {
+    const orders = await Order.find({ status: { $in: ['Registered', 'Preparing'] } })
+      .populate('items.menuItem', 'name image price')
+      .sort({ createdAt: 1 }); // Oldest first
+    res.status(200).json(orders);
+  } catch (error) {
+    console.error('Error fetching kitchen orders:', error.message);
+    res.status(500).json({ message: 'Server error while fetching kitchen orders' });
+  }
+};
+
+/**
+ * @desc    Change status to Preparing
+ * @route   PATCH /api/orders/:id/start
+ * @access  Private/Kitchen
+ */
+const startOrder = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).json({ message: 'Order not found' });
+
+    if (order.status !== 'Registered') {
+      return res.status(400).json({ message: `Strict Constraint: Cannot start order from status '${order.status}'. Must be 'Registered'.` });
+    }
+
+    // Calculate estimated prep time (5 mins per quantity unit)
+    let totalItems = 0;
+    order.items.forEach(item => totalItems += item.quantity);
+    order.estimatedPrepTime = totalItems * 5;
+
+    // Update state
+    order.status = 'Preparing';
+    const updatedOrder = await order.save();
+
+    // Audit Log
+    await OrderLog.create({
+      order_id: order._id,
+      old_status: 'Registered',
+      new_status: 'Preparing',
+      changed_by: req.user._id
+    });
+
+    res.status(200).json(updatedOrder);
+  } catch (error) {
+    console.error('Error starting order:', error.message);
+    res.status(500).json({ message: 'Server error while starting order' });
+  }
+};
+
+/**
+ * @desc    Change status to Ready for Delivery
+ * @route   PATCH /api/orders/:id/ready
+ * @access  Private/Kitchen
+ */
+const readyOrder = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).json({ message: 'Order not found' });
+
+    if (order.status !== 'Preparing') {
+      return res.status(400).json({ message: `Strict Constraint: Cannot mark ready from status '${order.status}'. Must be 'Preparing'.` });
+    }
+
+    // Update state
+    order.status = 'Ready for Delivery';
+    const updatedOrder = await order.save();
+
+    // Audit Log
+    await OrderLog.create({
+      order_id: order._id,
+      old_status: 'Preparing',
+      new_status: 'Ready for Delivery',
+      changed_by: req.user._id
+    });
+
+    res.status(200).json(updatedOrder);
+  } catch (error) {
+    console.error('Error marking order ready:', error.message);
+    res.status(500).json({ message: 'Server error while marking order ready' });
+  }
+};
+
+/**
+ * @desc    Fetch all orders for Delivery
+ * @route   GET /api/orders/delivery
+ * @access  Private/Cashier
+ */
+const getDeliveryOrders = async (req, res) => {
+  try {
+    const orders = await Order.find({ status: 'Ready for Delivery' })
+      .populate('items.menuItem', 'name price')
+      .populate('customer', 'name email')
+      .sort({ createdAt: 1 });
+    res.status(200).json(orders);
+  } catch (error) {
+    console.error('Error fetching delivery orders:', error.message);
+    res.status(500).json({ message: 'Server error while fetching delivery orders' });
+  }
+};
+
+/**
+ * @desc    Change status to Delivered
+ * @route   PATCH /api/orders/:id/deliver
+ * @access  Private/Cashier
+ */
+const deliverOrder = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).json({ message: 'Order not found' });
+
+    if (order.status !== 'Ready for Delivery') {
+      return res.status(400).json({ message: `Strict Constraint: Cannot deliver from status '${order.status}'. Must be 'Ready for Delivery'.` });
+    }
+
+    // Update state
+    order.status = 'Delivered';
+    const updatedOrder = await order.save();
+
+    // Audit Log
+    await OrderLog.create({
+      order_id: order._id,
+      old_status: 'Ready for Delivery',
+      new_status: 'Delivered',
+      changed_by: req.user._id
+    });
+
+    res.status(200).json(updatedOrder);
+  } catch (error) {
+    console.error('Error delivering order:', error.message);
+    res.status(500).json({ message: 'Server error while delivering order' });
+  }
+};
+
 module.exports = {
   createOrder,
   getMyOrders,
   getOrderById,
-  cancelOrder
+  cancelOrder,
+  getKitchenOrders,
+  startOrder,
+  readyOrder,
+  getDeliveryOrders,
+  deliverOrder
 };

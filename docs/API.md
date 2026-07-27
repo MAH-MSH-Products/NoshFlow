@@ -243,3 +243,38 @@ Base URL: `http://localhost:5000`
 ### Delete Discount Code
 - **URL**: `/api/discounts/:id`
 - **Method**: `DELETE`
+
+---
+
+## 8. Kitchen Staff APIs
+*All routes below require `Authorization: Bearer <token>` header and the authenticated user must have the `Kitchen Staff` or `Admin` role.*
+
+### Get Kitchen Orders
+- **URL**: `/api/kitchen/orders`
+- **Method**: `GET`
+- **Success Response (200 OK)**: Returns an array of orders with status "Registered" or "Preparing", sorted by oldest first.
+
+### Start Preparing Order
+- **URL**: `/api/orders/:id/start`
+- **Method**: `PATCH`
+- **Business Rule**: Changes status from "Registered" to "Preparing". Automatically calculates and assigns an `estimatedPrepTime`. Also inserts an Audit Log.
+
+### Mark Order Ready for Delivery
+- **URL**: `/api/orders/:id/ready`
+- **Method**: `PATCH`
+- **Business Rule**: Changes status from "Preparing" to "Ready for Delivery". Also inserts an Audit Log.
+
+---
+
+## 9. Delivery/Cashier APIs
+*All routes below require `Authorization: Bearer <token>` header and the authenticated user must have the `Cashier` or `Admin` role.*
+
+### Get Delivery Orders
+- **URL**: `/api/delivery/orders`
+- **Method**: `GET`
+- **Success Response (200 OK)**: Returns an array of orders with status "Ready for Delivery", sorted by oldest first.
+
+### Mark Order Delivered
+- **URL**: `/api/orders/:id/deliver`
+- **Method**: `PATCH`
+- **Business Rule**: Changes status from "Ready for Delivery" to "Delivered". Also inserts an Audit Log.

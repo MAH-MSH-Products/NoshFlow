@@ -30,8 +30,11 @@ const orderSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['Registered', 'In Preparation', 'Ready', 'Delivered', 'Cancelled'],
+    enum: ['Registered', 'Preparing', 'Ready for Delivery', 'Delivered', 'Cancelled'],
     default: 'Registered'
+  },
+  estimatedPrepTime: {
+    type: Number // in minutes
   }
 }, { timestamps: true });
 
