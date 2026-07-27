@@ -17,13 +17,43 @@ const getCategories = async (req, res) => {
 };
 
 /**
- * @desc    Fetch all menu items
+ * @desc    Fetch all menu items (with search and filters)
  * @route   GET /api/menu-items
  * @access  Public
  */
 const getMenuItems = async (req, res) => {
   try {
-    const menuItems = await MenuItem.find({}).populate('category', 'name description');
+    const { search, category, minPrice, maxPrice, inStock } = req.query;
+    
+    // Build the query object dynamically
+    let query = {};
+    
+    // 1. Search by name or description (case-insensitive)
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } }
+      ];
+    }
+    
+    // 2. Filter by Category ObjectId
+    if (category) {
+      query.category = category;
+    }
+    
+    // 3. Filter by Price Range
+    if (minPrice || maxPrice) {
+      query.price = {};
+      if (minPrice) query.price.$gte = Number(minPrice);
+      if (maxPrice) query.price.$lte = Number(maxPrice);
+    }
+    
+    // 4. Filter by Stock Availability
+    if (inStock === 'true') {
+      query.stock = { $gt: 0 };
+    }
+
+    const menuItems = await MenuItem.find(query).populate('category', 'name description');
     res.status(200).json(menuItems);
   } catch (error) {
     console.error('Error fetching menu items:', error.message);
