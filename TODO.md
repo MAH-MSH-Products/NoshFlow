@@ -96,7 +96,7 @@ When using AI to help develop a specific feature, follow this strict sequence to
 
 ### Phase 3: Menu & Cart Logic
 * [ ] **Backend (HamidiFard):** Design `MenuItems` and `Categories` collections. Write APIs to fetch the menu list. **Crucial:** Implement server-side price calculation and validation (do not trust client-side prices).
-    * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
+    * *Status:* ✅ Done
     * *Handoff Message:* "Menu APIs are ready and price validation is strict on the server."
 * [ ] **Frontend (HajiAlirezaei):** Design menu cards UI (name, description, price, add button). Implement cart state management in the browser and DOM events for adding/removing items.
     * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
@@ -104,7 +104,7 @@ When using AI to help develop a specific feature, follow this strict sequence to
 
 ### Phase 4: Order Management (Customer)
 * [ ] **Backend (HamidiFard):** Write the final order submission API. Set the initial order status to "Registered" (`ثبت‌‌شده`) and design the `Orders` collection.
-    * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
+    * *Status:* ✅ Done
     * *Handoff Message:* "Order submission API is live."
 * [ ] **Frontend (HajiAlirezaei):** Design the order tracking page for the customer, utilizing colored labels to differentiate order statuses.
     * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
@@ -112,7 +112,7 @@ When using AI to help develop a specific feature, follow this strict sequence to
 
 ### Phase 5: Staff Dashboards (Kitchen & Cashier)
 * [ ] **Backend (HamidiFard):** Write APIs to update order statuses sequentially (Preparing -> Ready for Delivery -> Delivered). Ensure Role-Based Access Control so only specific staff can trigger these updates.
-    * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
+    * *Status:* ✅ Done
     * *Handoff Message:* "Status update APIs are ready for staff."
 * [ ] **Frontend (HajiAlirezaei):** Design separate, distinct panels for Kitchen staff (to view the queue) and the Cashier (for final delivery). Add status update buttons connected to the API.
     * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
