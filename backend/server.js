@@ -2,9 +2,11 @@
 require('dotenv').config();
 
 const express = require('express');
+const path = require('path');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
+const menuRoutes = require('./routes/menuRoutes');
 
 // Initialize the Express application
 const app = express();
@@ -22,8 +24,12 @@ app.use(express.json());
 // Parse incoming URL-encoded form data (extended: true allows for nested objects)
 app.use(express.urlencoded({ extended: true }));
 
+// Serve uploaded static files
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // --- Routes ---
 app.use('/api/auth', authRoutes);
+app.use('/api', menuRoutes);
 
 // A basic health check route to verify the server is running
 app.get('/api/health', (req, res) => {
