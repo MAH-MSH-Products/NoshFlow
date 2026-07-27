@@ -56,8 +56,13 @@ const authorize = (allowedRoles = []) => {
 
 /**
  * Security Middleware: Prevents NoSQL Injection.
- * This can be used on specific routes or globally.
+ * Adjusted for Express 5 compatibility since req.query is a read-only getter.
  */
-const sanitizeInput = mongoSanitize();
+const sanitizeInput = (req, res, next) => {
+  if (req.body) mongoSanitize.sanitize(req.body);
+  if (req.params) mongoSanitize.sanitize(req.params);
+  if (req.query) mongoSanitize.sanitize(req.query);
+  next();
+};
 
 module.exports = { protect, authorize, sanitizeInput };
