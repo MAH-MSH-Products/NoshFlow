@@ -172,6 +172,12 @@ const createMenuItem = async (req, res) => {
   try {
     const { name, description, price, stock, image, category } = req.body;
 
+    // Handle physical file upload if present, otherwise fallback to URL string from body
+    let finalImage = image || '';
+    if (req.file) {
+      finalImage = `/uploads/${req.file.filename}`;
+    }
+
     if (!name || price === undefined || !category) {
       return res.status(400).json({ message: 'Name, price, and category are required' });
     }
@@ -184,7 +190,7 @@ const createMenuItem = async (req, res) => {
       description,
       price,
       stock: stock || 0,
-      image,
+      image: finalImage,
       category
     });
 
@@ -217,7 +223,13 @@ const updateMenuItem = async (req, res) => {
     if (name) menuItem.name = name;
     if (description !== undefined) menuItem.description = description;
     if (price !== undefined) menuItem.price = price;
-    if (image !== undefined) menuItem.image = image;
+    
+    // Handle image update (physical file priority over string URL)
+    if (req.file) {
+      menuItem.image = `/uploads/${req.file.filename}`;
+    } else if (image !== undefined) {
+      menuItem.image = image;
+    }
 
     const updatedMenuItem = await menuItem.save();
     res.status(200).json(updatedMenuItem);

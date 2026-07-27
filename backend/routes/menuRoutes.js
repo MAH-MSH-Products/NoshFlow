@@ -13,6 +13,7 @@ const {
   deleteMenuItem
 } = require('../controllers/menuController');
 const { protect, authorize } = require('../middlewares/authMiddleware');
+const upload = require('../middlewares/uploadMiddleware');
 
 // Map endpoints (Mounted at /api in server.js)
 
@@ -31,8 +32,8 @@ router.patch('/categories/:id', updateCategory);
 router.delete('/categories/:id', deleteCategory);
 
 // Menu Item Admin APIs
-router.post('/menu-items', createMenuItem);
-router.patch('/menu-items/:id', updateMenuItem);
+router.post('/menu-items', upload.single('image'), createMenuItem);
+router.patch('/menu-items/:id', upload.single('image'), updateMenuItem);
 router.patch('/menu-items/:id/availability', updateMenuItemStock);
 router.delete('/menu-items/:id', deleteMenuItem);
 
