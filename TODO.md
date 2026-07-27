@@ -96,7 +96,7 @@ When using AI to help develop a specific feature, follow this strict sequence to
 
 ### Phase 3: Menu & Cart Logic
 * [ ] **Backend (HamidiFard):** Design `MenuItems` and `Categories` collections. Write APIs to fetch the menu list. **Crucial:** Implement server-side price calculation and validation (do not trust client-side prices).
-    * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
+    * *Status:* ✅ Done
     * *Handoff Message:* "Menu APIs are ready and price validation is strict on the server."
 * [ ] **Frontend (HajiAlirezaei):** Design menu cards UI (name, description, price, add button). Implement cart state management in the browser and DOM events for adding/removing items.
     * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
