@@ -6,7 +6,8 @@ const {
   getDailySales, 
   getPopularItems,
   getAllUsers,
-  getAllRoles
+  getAllRoles,
+  getOrderLogs
 } = require('../controllers/adminController');
 const { protect, authorize } = require('../middlewares/authMiddleware');
 
@@ -24,5 +25,8 @@ router.get('/orders', getAllOrders);
 router.get('/users', getAllUsers);
 router.patch('/users/:id/role', updateUserRole);
 router.get('/roles', getAllRoles);
+
+// Audit Logs
+router.get('/logs', getOrderLogs);
 
 module.exports = router;

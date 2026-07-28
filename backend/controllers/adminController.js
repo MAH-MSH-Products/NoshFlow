@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const Role = require('../models/Role');
 const Order = require('../models/Order');
+const OrderLog = require('../models/OrderLog');
 
 /**
  * @desc    Update user role
@@ -41,13 +42,18 @@ const getAllOrders = async (req, res) => {
     const limit = parseInt(req.query.limit) || 20;
     const skip = (page - 1) * limit;
 
-    const { status, startDate, endDate } = req.query;
+    const { status, startDate, endDate, userId } = req.query;
     
     let query = {};
 
     // Filter by specific status
     if (status) {
       query.status = status;
+    }
+
+    // Filter by specific user
+    if (userId) {
+      query.customer = userId;
     }
 
     // Filter by date range
@@ -226,11 +232,64 @@ const getAllRoles = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Get order status audit logs (paginated)
+ * @route   GET /api/admin/logs
+ * @access  Private/Admin
+ */
+const getOrderLogs = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
+
+    const { orderId, startDate, endDate } = req.query;
+    
+    let query = {};
+
+    // Filter by specific order ID
+    if (orderId) {
+      query.order_id = orderId;
+    }
+
+    // Filter by date range for the log creation
+    if (startDate || endDate) {
+      query.changed_at = {};
+      if (startDate) {
+        query.changed_at.$gte = new Date(startDate);
+      }
+      if (endDate) {
+        query.changed_at.$lte = new Date(endDate);
+      }
+    }
+
+    const logs = await OrderLog.find(query)
+      .populate('order_id', 'status totalPrice estimatedPrepTime')
+      .populate('changed_by', 'name email')
+      .sort({ changed_at: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const totalLogs = await OrderLog.countDocuments(query);
+
+    res.status(200).json({
+      logs,
+      currentPage: page,
+      totalPages: Math.ceil(totalLogs / limit),
+      totalLogs
+    });
+  } catch (error) {
+    console.error('Error fetching order logs:', error.message);
+    res.status(500).json({ message: 'Server error while fetching order logs' });
+  }
+};
+
 module.exports = {
   updateUserRole,
   getAllOrders,
   getDailySales,
   getPopularItems,
   getAllUsers,
-  getAllRoles
+  getAllRoles,
+  getOrderLogs
 };
