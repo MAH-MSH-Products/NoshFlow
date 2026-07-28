@@ -10,12 +10,18 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    services:
+      mongodb:
+        image: mongo:latest
+        ports:
+          - 27017:27017
+
     strategy:
       matrix:
         node-version: [20.x]
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Set up Node.js ${{ matrix.node-version }}
@@ -23,15 +29,13 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
-          cache-dependency-path: backend/package-lock.json
 
-      - name: Install Dependencies
+      - name: Install dependencies
+        run: npm install
         working-directory: ./backend
-        run: npm ci
 
-      - name: Run Vitest Tests
+      - name: Run tests
+        run: npm test -- --run
         working-directory: ./backend
         env:
-          CI: true
-          GITHUB_ACTIONS: true
-        run: npm test -- --run
+          MONGO_URI: mongodb://localhost:27017/foodops_test
