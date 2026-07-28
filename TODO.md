@@ -120,7 +120,7 @@ When using AI to help develop a specific feature, follow this strict sequence to
 
 ### Phase 6: Admin Panel & Reports
 * [ ] **Backend (HamidiFard):** Write APIs for managing user roles, fetching daily sales statistics, and generating data for charts.
-    * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
+    * *Status:* ✅ Done
     * *Handoff Message:* "Admin and Reporting APIs are providing data."
 * [ ] **Frontend (HajiAlirezaei):** Design the Admin panel to manage the menu. Implement graphical charts to display daily sales and reports visually.
     * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
@@ -128,7 +128,7 @@ When using AI to help develop a specific feature, follow this strict sequence to
 
 ### Phase 7: Security & Bonus Features
 * [ ] **Backend (HamidiFard):** Implement NoSQL Injection prevention. Add bonus logic: automatically reduce item stock upon order, and create an `audit_logs` collection to track exact order status history.
-    * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
+    * *Status:* ✅ Done
 * [ ] **Frontend (HajiAlirezaei):** Implement bonus logic: Search and filter functionality for menu items, display approximate prep time, and visually disable "Add to cart" buttons for out-of-stock items.
     * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
 

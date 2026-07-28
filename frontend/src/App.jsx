@@ -7,6 +7,7 @@ import Cart from "./pages/Cart";
 import KitchenDashboard from "./pages/KitchenDashboard";
 import CashierDashboard from "./pages/CashierDashboard";
 import { CartProvider } from "./context/CartContext";
+import AdminDashboard from "./pages/AdminDashboard";
 
 export default function App() {
     return (
@@ -25,6 +26,7 @@ export default function App() {
 
                         <Route path="/kitchen" element={<KitchenDashboard />} />
                         <Route path="/cashier" element={<CashierDashboard />} />
+                        <Route path="/admin" element={<AdminDashboard />} />
                     </Routes>
                 </main>
             </Router>
