@@ -11,6 +11,7 @@ const orderRoutes = require('./routes/orderRoutes');
 const discountRoutes = require('./routes/discountRoutes');
 const kitchenRoutes = require('./routes/kitchenRoutes');
 const deliveryRoutes = require('./routes/deliveryRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 
 // Initialize the Express application
 const app = express();
@@ -38,6 +39,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/discounts', discountRoutes);
 app.use('/api/kitchen', kitchenRoutes);
 app.use('/api/delivery', deliveryRoutes);
+app.use('/api/admin', adminRoutes);
 
 // A basic health check route to verify the server is running
 app.get('/api/health', (req, res) => {
