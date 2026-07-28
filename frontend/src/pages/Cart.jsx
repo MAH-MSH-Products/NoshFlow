@@ -8,6 +8,47 @@ export default function Cart() {
     const [message, setMessage] = useState({ type: "", text: "" });
     const navigate = useNavigate();
 
+    const [discountInput, setDiscountInput] = useState("");
+    const [appliedDiscount, setAppliedDiscount] = useState(null);
+    const [discountMsg, setDiscountMsg] = useState({ type: "", text: "" });
+
+    const handleApplyDiscount = async () => {
+        if (!discountInput.trim()) return;
+
+        setDiscountMsg({ type: "", text: "Checking..." });
+
+        try {
+            const token = localStorage.getItem("token");
+            const response = await fetch("http://127.0.0.1:5000/api/discounts/validate", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({ code: discountInput.toUpperCase() })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                setAppliedDiscount({
+                    code: discountInput.toUpperCase(),
+                    percent: data.discountPercent || (data.discount && data.discount.discountPercent) || 0
+                });
+                setDiscountMsg({ type: "success", text: `Success! ${data.discountPercent || (data.discount && data.discount.discountPercent)}% discount applied.` });
+            } else {
+                setAppliedDiscount(null);
+                setDiscountMsg({ type: "error", text: data.message || "Invalid or expired code." });
+            }
+        } catch (error) {
+            setDiscountMsg({ type: "error", text: "Network error. Server might be down." });
+        }
+    };
+
+    const finalTotal = appliedDiscount
+        ? cartTotal - (cartTotal * (appliedDiscount.percent / 100))
+        : cartTotal;
+
     const handleCheckout = async () => {
         const token = localStorage.getItem("token");
         if (!token) {
@@ -23,7 +64,8 @@ export default function Cart() {
             items: cartItems.map(item => ({
                 menuItem: item._id,
                 quantity: item.quantity
-            }))
+            })),
+            ...(appliedDiscount && { discountCode: appliedDiscount.code })
         };
 
         try {
@@ -73,6 +115,7 @@ export default function Cart() {
                     </div>
                 )}
 
+                {/* لیست آیتم‌های سبد خرید */}
                 <div className="bg-white shadow-md rounded-xl overflow-hidden mb-6">
                     <ul className="divide-y divide-gray-200">
                         {cartItems.map((item) => (
@@ -89,7 +132,7 @@ export default function Cart() {
                                         <span className="px-3 font-medium">{item.quantity}</span>
                                         <button onClick={() => updateQuantity(item._id, 1)} className="px-3 py-1 hover:bg-gray-100 font-bold">+</button>
                                     </div>
-                                    <div className="font-bold text-lg w-20 text-right text-blue-600">${(item.price * item.quantity).toFixed(2)}</div>
+                                    <div className="font-bold text-lg w-20 text-right text-gray-800">${(item.price * item.quantity).toFixed(2)}</div>
                                     <button onClick={() => removeFromCart(item._id)} className="text-red-500 hover:text-red-700 font-semibold p-2 text-sm">Remove</button>
                                 </div>
                             </li>
@@ -97,19 +140,60 @@ export default function Cart() {
                     </ul>
                 </div>
 
-                <div className="bg-white shadow-md rounded-xl p-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-                    <div>
-                        <p className="text-gray-500 text-sm font-semibold uppercase tracking-wider">Total Amount</p>
-                        <p className="text-3xl font-extrabold text-gray-900">${cartTotal.toFixed(2)}</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* بخش وارد کردن کد تخفیف */}
+                    <div className="bg-white shadow-md rounded-xl p-6">
+                        <label className="block text-sm font-bold text-gray-700 mb-3">Have a Discount Code?</label>
+                        <div className="flex gap-2">
+                            <input
+                                type="text"
+                                value={discountInput}
+                                onChange={(e) => setDiscountInput(e.target.value)}
+                                placeholder="e.g. SUMMER20"
+                                className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase font-mono"
+                            />
+                            <button
+                                onClick={handleApplyDiscount}
+                                className="bg-gray-800 hover:bg-gray-900 text-white font-bold py-2 px-6 rounded-lg transition-colors"
+                            >
+                                Apply
+                            </button>
+                        </div>
+                        {discountMsg.text && (
+                            <p className={`mt-3 text-sm font-semibold ${discountMsg.type === 'success' ? 'text-green-600' : 'text-red-500'}`}>
+                                {discountMsg.text}
+                            </p>
+                        )}
                     </div>
-                    <button
-                        onClick={handleCheckout}
-                        disabled={loading}
-                        className={`w-full sm:w-auto text-white text-lg font-bold py-3 px-8 rounded-xl transition-colors shadow-sm ${loading ? 'bg-gray-400' : 'bg-green-600 hover:bg-green-700'}`}
-                    >
-                        {loading ? "Processing..." : "Proceed to Checkout"}
-                    </button>
+
+                    <div className="bg-white shadow-md rounded-xl p-6 flex flex-col justify-between">
+                        <div className="space-y-2 mb-6">
+                            <div className="flex justify-between text-gray-500 font-medium">
+                                <span>Subtotal</span>
+                                <span>${cartTotal.toFixed(2)}</span>
+                            </div>
+                            {appliedDiscount && (
+                                <div className="flex justify-between text-green-600 font-bold">
+                                    <span>Discount ({appliedDiscount.percent}%)</span>
+                                    <span>-${(cartTotal * (appliedDiscount.percent / 100)).toFixed(2)}</span>
+                                </div>
+                            )}
+                            <div className="border-t pt-2 mt-2 flex justify-between items-end">
+                                <span className="text-gray-800 font-bold uppercase tracking-wider text-sm">Total</span>
+                                <span className="text-3xl font-extrabold text-blue-600">${finalTotal.toFixed(2)}</span>
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={handleCheckout}
+                            disabled={loading}
+                            className={`w-full text-white text-lg font-bold py-3 rounded-xl transition-colors shadow-sm ${loading ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'}`}
+                        >
+                            {loading ? "Processing..." : "Confirm & Pay"}
+                        </button>
+                    </div>
                 </div>
+
             </div>
         </div>
     );
