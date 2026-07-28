@@ -278,3 +278,61 @@ Base URL: `http://localhost:5000`
 - **URL**: `/api/orders/:id/deliver`
 - **Method**: `PATCH`
 - **Business Rule**: Changes status from "Ready for Delivery" to "Delivered". Also inserts an Audit Log.
+
+---
+
+## 10. Admin Dashboard & Analytics APIs
+*All routes below require `Authorization: Bearer <token>` header and the authenticated user must have the `Admin` role.*
+
+### Get All Users
+- **URL**: `/api/admin/users`
+- **Method**: `GET`
+- **Query Parameters (Optional)**:
+  - `page` / `limit`: Pagination parameters.
+- **Success Response (200 OK)**: Returns a paginated array of users (passwords excluded) with populated roles.
+
+### Update User Role
+- **URL**: `/api/admin/users/:id/role`
+- **Method**: `PATCH`
+- **Content-Type**: `application/json`
+- **Body Payload**:
+  ```json
+  {
+    "roleId": "64abcdef1234567890abcdef"
+  }
+  ```
+
+### Get All Roles
+- **URL**: `/api/admin/roles`
+- **Method**: `GET`
+- **Success Response (200 OK)**: Returns an array of all available system roles, sorted alphabetically.
+
+### Get All Orders (Master View)
+- **URL**: `/api/admin/orders`
+- **Method**: `GET`
+- **Query Parameters (Optional)**:
+  - `page` / `limit`: Pagination parameters.
+  - `status` (String): Filter orders by specific status (e.g., `Delivered`).
+  - `userId` (ObjectId): Filter orders placed by a specific user.
+  - `startDate` / `endDate` (ISO Date Strings): Filter orders by creation date range.
+- **Example**: `/api/admin/orders?status=Preparing&userId=64abc&startDate=2026-07-01`
+- **Success Response (200 OK)**: Returns a paginated list of all orders in the system, fully populated.
+
+### Get Order Status Audit Logs
+- **URL**: `/api/admin/logs`
+- **Method**: `GET`
+- **Query Parameters (Optional)**:
+  - `page` / `limit`: Pagination parameters.
+  - `orderId` (ObjectId): Filter audit history for a specific order.
+  - `startDate` / `endDate` (ISO Date Strings): Filter logs by when the change happened.
+- **Success Response (200 OK)**: Returns paginated `OrderLog` records tracking status changes.
+
+### Get Daily Sales Report (Analytics)
+- **URL**: `/api/admin/reports/daily`
+- **Method**: `GET`
+- **Success Response (200 OK)**: Returns aggregated array of objects grouped by date (`YYYY-MM-DD`), featuring `totalRevenue` and `orderCount`. Automatically excludes cancelled orders.
+
+### Get Popular Menu Items (Analytics)
+- **URL**: `/api/admin/reports/items`
+- **Method**: `GET`
+- **Success Response (200 OK)**: Returns the top 10 best-selling items, dynamically aggregating total quantity sold using a MongoDB pipeline.
