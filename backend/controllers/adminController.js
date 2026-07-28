@@ -157,9 +157,58 @@ const getPopularItems = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Get all users (paginated)
+ * @route   GET /api/admin/users
+ * @access  Private/Admin
+ */
+const getAllUsers = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
+
+    const users = await User.find()
+      .select('-password') // Never return passwords
+      .populate('role', 'name') // Assuming Role model has a 'name' field
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const totalUsers = await User.countDocuments();
+
+    res.status(200).json({
+      users,
+      currentPage: page,
+      totalPages: Math.ceil(totalUsers / limit),
+      totalUsers
+    });
+  } catch (error) {
+    console.error('Error fetching users:', error.message);
+    res.status(500).json({ message: 'Server error while fetching users' });
+  }
+};
+
+/**
+ * @desc    Get all available roles
+ * @route   GET /api/admin/roles
+ * @access  Private/Admin
+ */
+const getAllRoles = async (req, res) => {
+  try {
+    const roles = await Role.find().sort({ name: 1 });
+    res.status(200).json(roles);
+  } catch (error) {
+    console.error('Error fetching roles:', error.message);
+    res.status(500).json({ message: 'Server error while fetching roles' });
+  }
+};
+
 module.exports = {
   updateUserRole,
   getAllOrders,
   getDailySales,
-  getPopularItems
+  getPopularItems,
+  getAllUsers,
+  getAllRoles
 };

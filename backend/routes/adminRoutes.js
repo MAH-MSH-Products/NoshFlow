@@ -4,7 +4,9 @@ const {
   updateUserRole, 
   getAllOrders, 
   getDailySales, 
-  getPopularItems 
+  getPopularItems,
+  getAllUsers,
+  getAllRoles
 } = require('../controllers/adminController');
 const { protect, authorize } = require('../middlewares/authMiddleware');
 
@@ -18,7 +20,9 @@ router.get('/reports/items', getPopularItems);
 // Order Management
 router.get('/orders', getAllOrders);
 
-// User Management
+// User & Role Management
+router.get('/users', getAllUsers);
 router.patch('/users/:id/role', updateUserRole);
+router.get('/roles', getAllRoles);
 
 module.exports = router;
