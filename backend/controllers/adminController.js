@@ -41,14 +41,36 @@ const getAllOrders = async (req, res) => {
     const limit = parseInt(req.query.limit) || 20;
     const skip = (page - 1) * limit;
 
-    const orders = await Order.find()
+    const { status, startDate, endDate } = req.query;
+    
+    let query = {};
+
+    // Filter by specific status
+    if (status) {
+      query.status = status;
+    }
+
+    // Filter by date range
+    if (startDate || endDate) {
+      query.createdAt = {};
+      if (startDate) {
+        query.createdAt.$gte = new Date(startDate);
+      }
+      if (endDate) {
+        // To include the entire end date, we might want to set the time to 23:59:59, 
+        // but passing standard ISO strings works directly.
+        query.createdAt.$lte = new Date(endDate);
+      }
+    }
+
+    const orders = await Order.find(query)
       .populate('customer', 'name email')
       .populate('items.menuItem', 'name price')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
 
-    const totalOrders = await Order.countDocuments();
+    const totalOrders = await Order.countDocuments(query);
 
     res.status(200).json({
       orders,
