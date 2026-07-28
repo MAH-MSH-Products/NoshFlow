@@ -115,7 +115,7 @@ When using AI to help develop a specific feature, follow this strict sequence to
     * *Status:* ✅ Done
     * *Handoff Message:* "Status update APIs are ready for staff."
 * [ ] **Frontend (HajiAlirezaei):** Design separate, distinct panels for Kitchen staff (to view the queue) and the Cashier (for final delivery). Add status update buttons connected to the API.
-    * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
+    * *Status:* ✅ Done
     * *Handoff Message:* "Staff dashboards are ready and buttons change order statuses."
 
 ### Phase 6: Admin Panel & Reports
@@ -123,14 +123,14 @@ When using AI to help develop a specific feature, follow this strict sequence to
     * *Status:* ✅ Done
     * *Handoff Message:* "Admin and Reporting APIs are providing data."
 * [ ] **Frontend (HajiAlirezaei):** Design the Admin panel to manage the menu. Implement graphical charts to display daily sales and reports visually.
-    * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
+    * *Status:* ✅ Done
     * *Handoff Message:* "Admin UI and charts are successfully rendering data."
 
 ### Phase 7: Security & Bonus Features
 * [ ] **Backend (HamidiFard):** Implement NoSQL Injection prevention. Add bonus logic: automatically reduce item stock upon order, and create an `audit_logs` collection to track exact order status history.
     * *Status:* ✅ Done
 * [ ] **Frontend (HajiAlirezaei):** Implement bonus logic: Search and filter functionality for menu items, display approximate prep time, and visually disable "Add to cart" buttons for out-of-stock items.
-    * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
+    * *Status:* ✅ Done
 
 ## 5. Project Dependencies & Blockers
 
