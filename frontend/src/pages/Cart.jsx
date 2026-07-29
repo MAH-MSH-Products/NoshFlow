@@ -52,49 +52,61 @@ export default function Cart() {
     const handleCheckout = async () => {
         const token = localStorage.getItem("token");
         if (!token) {
-            alert("You need to login first to place an order!");
-            navigate("/login");
-            return;
+            return alert("شما لاگین نیستید! لطفاً برای ثبت سفارش وارد حساب کاربری خود شوید.");
         }
 
-        setLoading(true);
-        setMessage({ type: "", text: "" });
+        if (cartItems.length === 0) {
+            return alert("سبد خرید شما خالی است!");
+        }
 
-        const orderData = {
-            items: cartItems.map(item => ({
-                menuItem: item._id,
-                quantity: item.quantity
-            })),
-            ...(appliedDiscount && { discountCode: appliedDiscount.code })
+        // برای بررسی دقیق در کنسول
+        console.log("دیتای خام سبد خرید:", cartItems);
+
+        const payload = {
+            items: cartItems.map(item => {
+                const itemId = item._id || item.id || (item.menuItem && item.menuItem._id) || item.menuItem;
+
+                if (!itemId) {
+                    alert("خطای فرانت‌اند: یکی از آیتم‌های سبد خرید اصلاً آیدی ندارد! لطفاً سبد را خالی کنید و دوباره غذا اضافه کنید.");
+                    console.error("آیتم بدون آیدی:", item);
+                }
+
+                return {
+                    menuItemId: itemId, // 🔴 تغییر کلیدی: menuItem تبدیل شد به menuItemId
+                    quantity: Number(item.quantity) || 1
+                };
+            })
         };
 
+        console.log("دیتای آماده ارسال به بک‌اند:", payload);
+
         try {
-            const response = await fetch("http://127.0.0.1:5000/api/orders", {
+            const res = await fetch("http://127.0.0.1:5000/api/orders", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${token}`
                 },
-                body: JSON.stringify(orderData)
+                body: JSON.stringify(payload)
             });
 
-            const data = await response.json();
+            if (res.ok) {
+                alert("سفارش شما با موفقیت ثبت شد! 🛍️");
 
-            if (response.ok) {
-                setMessage({ type: "success", text: "Order placed successfully! 🚀" });
-                setTimeout(() => {
-                    window.location.href = "/";
-                }, 2000);
+                // خالی کردن سبد خرید بعد از ثبت موفق
+                if (typeof setCartItems === 'function') {
+                    setCartItems([]);
+                }
+
+                window.location.href = "/my-orders";
             } else {
-                setMessage({ type: "error", text: data.message || "Failed to place order." });
+                const data = await res.json();
+                alert(`خطای بک‌اند در ثبت سفارش: ${data.message || "اطلاعات ارسالی نامعتبر است"}`);
             }
-        } catch (error) {
-            setMessage({ type: "error", text: "Connection error. Server might be down." });
-        } finally {
-            setLoading(false);
+        } catch (err) {
+            alert("خطای شبکه: امکان اتصال به سرور وجود ندارد.");
         }
     };
-
     if (cartItems.length === 0 && !message.text) {
         return (
             <div className="min-h-[calc(100vh-64px)] bg-gray-50 flex flex-col items-center justify-center p-4">
