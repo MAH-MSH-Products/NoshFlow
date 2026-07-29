@@ -1,24 +1,33 @@
-const checkWorkingHours = (req, res, next) => {
-  const now = new Date();
-  
-  // Allowed working hours (default 08:00 to 22:00)
-  const openTime = process.env.OPENING_HOUR || '08:00';
-  const closeTime = process.env.CLOSING_HOUR || '22:00';
+const Setting = require('../models/Setting');
 
-  const [openHour, openMin] = openTime.split(':').map(Number);
-  const [closeHour, closeMin] = closeTime.split(':').map(Number);
+const workingHoursMiddleware = async (req, res, next) => {
+  try {
+// 1. Check for admin manual switch
+    const setting = await Setting.findOne({ key: 'isForceOpen' });
 
-  // Use current server timezone
-  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), openHour, openMin, 0);
-  const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), closeHour, closeMin, 0);
+    if (setting && setting.value === true) {
+// If manual switch is enabled, orders are allowed regardless of system time
+      return next();
+    }
 
-  if (now >= start && now <= end) {
-    return next(); // Within working hours, proceed to checkout
+// 2. Default logic: Check for normal working hours (08:00 to 22:00)
+    const currentHour = new Date().getHours();
+    if (currentHour < 8 || currentHour >= 22) {
+      return res.status(400).json({
+        message: 'The restaurant is currently closed. Normal working hours are 08:00 to 22:00.'
+      });
+    }
+
+    next();
+  } catch (error) {
+    console.error('Error in workingHoursMiddleware:', error);
+// If there is an error getting the settings, use the default hours
+    const currentHour = new Date().getHours();
+    if (currentHour >= 8 && currentHour < 22) {
+      return next();
+    }
+    res.status(400).json({ message: 'The restaurant is currently closed.' });
   }
-
-  return res.status(403).json({ 
-    message: `The restaurant is currently closed. Ordering is available between ${openTime} and ${closeTime}.` 
-  });
 };
 
-module.exports = { checkWorkingHours };
+module.exports = workingHoursMiddleware ;
