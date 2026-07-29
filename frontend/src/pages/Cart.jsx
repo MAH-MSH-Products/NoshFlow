@@ -33,9 +33,9 @@ export default function Cart() {
             if (response.ok) {
                 setAppliedDiscount({
                     code: discountInput.toUpperCase(),
-                    percent: data.discountPercent || (data.discount && data.discount.discountPercent) || 0
+                    percent: data.discountPercentage || (data.discount && data.discount.discountPercentage) || 0
                 });
-                setDiscountMsg({ type: "success", text: `Success! ${data.discountPercent || (data.discount && data.discount.discountPercent)}% discount applied.` });
+                setDiscountMsg({ type: "success", text: `Success! ${data.discountPercentage || (data.discount && data.discount.discountPercentage)}% discount applied.` });
             } else {
                 setAppliedDiscount(null);
                 setDiscountMsg({ type: "error", text: data.message || "Invalid or expired code." });
@@ -52,30 +52,21 @@ export default function Cart() {
     const handleCheckout = async () => {
         const token = localStorage.getItem("token");
         if (!token) {
-            return alert("شما لاگین نیستید! لطفاً برای ثبت سفارش وارد حساب کاربری خود شوید.");
+            return alert("You are not logged in");
         }
 
         if (cartItems.length === 0) {
-            return alert("سبد خرید شما خالی است!");
+            return alert("Your cart is empty");
         }
 
-        // برای بررسی دقیق در کنسول
         console.log("دیتای خام سبد خرید:", cartItems);
 
         const payload = {
-            items: cartItems.map(item => {
-                const itemId = item._id || item.id || (item.menuItem && item.menuItem._id) || item.menuItem;
-
-                if (!itemId) {
-                    alert("خطای فرانت‌اند: یکی از آیتم‌های سبد خرید اصلاً آیدی ندارد! لطفاً سبد را خالی کنید و دوباره غذا اضافه کنید.");
-                    console.error("آیتم بدون آیدی:", item);
-                }
-
-                return {
-                    menuItemId: itemId, // 🔴 تغییر کلیدی: menuItem تبدیل شد به menuItemId
-                    quantity: Number(item.quantity) || 1
-                };
-            })
+            items: cartItems.map(item => ({
+                menuItemId: item._id,
+                quantity: item.quantity
+            })),
+            discountCode: appliedDiscount ? appliedDiscount.code : null
         };
 
         console.log("دیتای آماده ارسال به بک‌اند:", payload);
@@ -91,9 +82,8 @@ export default function Cart() {
             });
 
             if (res.ok) {
-                alert("سفارش شما با موفقیت ثبت شد! 🛍️");
+                alert("your order saved successfully 🛍️");
 
-                // خالی کردن سبد خرید بعد از ثبت موفق
                 if (typeof setCartItems === 'function') {
                     setCartItems([]);
                 }
