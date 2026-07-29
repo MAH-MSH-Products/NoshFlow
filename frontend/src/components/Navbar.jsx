@@ -28,6 +28,9 @@ export default function Navbar() {
                             <Link to="/admin" className="text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md font-medium transition-colors">
                                 Admin
                             </Link>
+                            <Link to="/my-orders" className="text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md font-medium transition-colors">
+                                My Orders 🛍️
+                            </Link>
                         </div>
                     </div>
 

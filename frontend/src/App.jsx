@@ -6,6 +6,7 @@ import Menu from "./pages/Menu";
 import Cart from "./pages/Cart";
 import KitchenDashboard from "./pages/KitchenDashboard";
 import CashierDashboard from "./pages/CashierDashboard";
+import MyOrders from "./pages/MyOrders"; // <--- اضافه شده
 import { CartProvider } from "./context/CartContext";
 import AdminDashboard from "./pages/AdminDashboard";
 
@@ -23,6 +24,7 @@ export default function App() {
 
                         <Route path="/menu" element={<Menu />} />
                         <Route path="/cart" element={<Cart />} />
+                        <Route path="/my-orders" element={<MyOrders />} />
 
                         <Route path="/kitchen" element={<KitchenDashboard />} />
                         <Route path="/cashier" element={<CashierDashboard />} />
