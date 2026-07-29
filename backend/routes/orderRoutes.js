@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const { 
-  createOrder, 
-  getMyOrders, 
-  getOrderById, 
+const {
+  createOrder,
+  getMyOrders,
+  getOrderById,
   cancelOrder,
   getKitchenOrders,
   startOrder,
@@ -12,11 +12,12 @@ const {
   deliverOrder
 } = require('../controllers/orderController');
 const { protect, authorize } = require('../middlewares/authMiddleware');
-const { checkWorkingHours } = require('../middlewares/workingHoursMiddleware');
+
+const checkWorkingHours = require('../middlewares/workingHoursMiddleware');
 
 // Define specific Role-Based Access Controls
 const customerAuth = [protect, authorize(['Customer'])];
-const kitchenAuth = [protect, authorize(['Admin', 'Kitchen Staff'])];
+const kitchenAuth = [protect, authorize(['Admin', 'Kitchen Staff', 'Kitchen'])];
 const deliveryAuth = [protect, authorize(['Admin', 'Cashier'])];
 
 // ==========================================
@@ -26,6 +27,12 @@ const deliveryAuth = [protect, authorize(['Admin', 'Cashier'])];
 // Customer GET / POST Routes
 router.post('/', customerAuth, checkWorkingHours, createOrder);
 router.get('/me', customerAuth, getMyOrders);
+
+// Kitchen GET Route
+router.get('/kitchen', kitchenAuth, getKitchenOrders);
+
+// Delivery GET Route
+router.get('/delivery', deliveryAuth, getDeliveryOrders);
 
 // ==========================================
 // PARAMETERIZED ROUTES (/:id)
