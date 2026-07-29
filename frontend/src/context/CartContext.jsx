@@ -9,17 +9,44 @@ export const useCart = () => useContext(CartContext);
 export const CartProvider = ({ children }) => {
     const [cartItems, setCartItems] = useState([]);
 
-// Add item to cart or increase quantity if it already exists
     const addToCart = (food) => {
         setCartItems((prevItems) => {
             const existingItem = prevItems.find((item) => item._id === food._id);
+            const currentQuantity = existingItem ? existingItem.quantity : 0;
+
+            if (currentQuantity + 1 > food.stock) {
+                alert(`you can not order more that ${food.stock}`);
+                return prevItems;
+            }
+
             if (existingItem) {
                 return prevItems.map((item) =>
                     item._id === food._id ? { ...item, quantity: item.quantity + 1 } : item
                 );
+            } else {
+                return [...prevItems, { ...food, quantity: 1 }];
             }
-            return [...prevItems, { ...food, quantity: 1 }];
         });
+    };
+
+    const updateQuantity = (id, newQuantity) => {
+        if (newQuantity <= 0) {
+            removeFromCart(id);
+            return;
+        }
+
+        setCartItems((prevItems) =>
+            prevItems.map((item) => {
+                if (item._id === id) {
+                    if (newQuantity > item.stock) {
+                        alert(`maximum stock is ${item.stock} for this food`);
+                        return item;
+                    }
+                    return { ...item, quantity: newQuantity };
+                }
+                return item;
+            })
+        );
     };
 
     // Remove item completely
@@ -27,18 +54,6 @@ export const CartProvider = ({ children }) => {
         setCartItems((prevItems) => prevItems.filter((item) => item._id !== id));
     };
 
-    // Increase or decrease quantity
-    const updateQuantity = (id, amount) => {
-        setCartItems((prevItems) =>
-            prevItems.map((item) => {
-                if (item._id === id) {
-                    const newQuantity = item.quantity + amount;
-                    return { ...item, quantity: newQuantity > 0 ? newQuantity : 1 };
-                }
-                return item;
-            })
-        );
-    };
 
     // Calculate total price and total items
     const cartTotal = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);

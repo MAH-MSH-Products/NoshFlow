@@ -1,10 +1,11 @@
 import React from 'react';
 
-export default function FoodCard({ food, onAddToCart }) {
+export default function FoodCard({food, onAddToCart}) {
     const isOutOfStock = food.stock === 0 || food.isAvailable === false;
 
     return (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow">
+        <div
+            className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow">
             {food.image ? (
                 <img
                     src={`http://127.0.0.1:5000/uploads/${food.image}`}
@@ -36,7 +37,12 @@ export default function FoodCard({ food, onAddToCart }) {
                     ) : (
                         <button
                             onClick={() => onAddToCart(food)}
-                            className="w-full py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-sm transition-colors text-center"
+                            disabled={food.stock <= 0}
+                            className={`px-4 py-2 text-white font-bold rounded-lg transition-colors 
+                                ${food.stock <= 0
+                                ? 'bg-gray-400 cursor-not-allowed' 
+                                : 'bg-blue-600 hover:bg-blue-700' 
+                            }`}
                         >
                             Add to Cart 🛒
                         </button>
