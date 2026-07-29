@@ -16,49 +16,14 @@ export default function AdminDashboard() {
     const [users, setUsers] = useState([]);
     const [roles, setRoles] = useState([]);
 
-    // Analytics
+    // Analytics & Restaurant Status
     const [analytics, setAnalytics] = useState({ totalOrders: 0, totalRevenue: 0, chartData: [] });
     const [isForceOpen, setIsForceOpen] = useState(false);
 
-    const fetchRestaurantStatus = async () => {
-        try {
-            const token = localStorage.getItem("token");
-            const res = await fetch("http://127.0.0.1:5000/api/admin/status", {
-                headers: { "Authorization": `Bearer ${token}` }
-            });
-            if (res.ok) {
-                const data = await res.json();
-                setIsForceOpen(data.isForceOpen);
-            }
-        } catch (error) {
-            console.error("Error fetching restaurant status:", error);
-        }
-    };
+    // Discounts
+    const [discounts, setDiscounts] = useState([]);
+    const [newDiscount, setNewDiscount] = useState({ code: '', discountPercentage: '', maxUses: '', expiresAt: '' });
 
-    useEffect(() => {
-        // ... بقیه fetchها
-        fetchRestaurantStatus();
-    }, []);
-
-    const handleToggleStatus = async () => {
-        try {
-            const token = localStorage.getItem("token");
-            const res = await fetch("http://127.0.0.1:5000/api/admin/status", {
-                method: "PATCH",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                },
-                body: JSON.stringify({ isForceOpen: !isForceOpen })
-            });
-            if (res.ok) {
-                const data = await res.json();
-                setIsForceOpen(data.isForceOpen);
-            }
-        } catch (error) {
-            alert("error in changing restaurant status");
-        }
-    };
     // --- Fetch Functions ---
     const fetchCategories = async () => {
         try {
@@ -132,15 +97,103 @@ export default function AdminDashboard() {
         }
     };
 
+    const fetchRestaurantStatus = async () => {
+        try {
+            const token = localStorage.getItem("token");
+            const res = await fetch("http://127.0.0.1:5000/api/admin/status", {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setIsForceOpen(data.isForceOpen);
+            }
+        } catch (error) {
+            console.error("Error fetching restaurant status:", error);
+        }
+    };
+
+    const fetchDiscounts = async () => {
+        try {
+            const token = localStorage.getItem("token");
+            const res = await fetch("http://127.0.0.1:5000/api/discounts", {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setDiscounts(data);
+            }
+        } catch (error) {
+            console.error("Error fetching discounts:", error);
+        }
+    };
+
     useEffect(() => {
         fetchCategories();
         fetchMenuItems();
         fetchUsers();
         fetchRoles();
         fetchAnalytics();
+        fetchRestaurantStatus();
+        fetchDiscounts();
     }, []);
 
-    // --- Action Handlers ---
+    // --- Handlers ---
+    const handleToggleStatus = async () => {
+        try {
+            const token = localStorage.getItem("token");
+            const res = await fetch("http://127.0.0.1:5000/api/admin/status", {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({ isForceOpen: !isForceOpen })
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setIsForceOpen(data.isForceOpen);
+            }
+        } catch (error) {
+            alert("Error toggling status");
+        }
+    };
+
+    const handleCreateDiscount = async (e) => {
+        e.preventDefault();
+        try {
+            const token = localStorage.getItem("token");
+
+            // Prepare the payload, sending multiple variations of the percentage key
+            // just in case the backend uses a different name.
+            const payload = {
+                code: newDiscount.code.trim().toUpperCase(),
+                discountPercentage: Number(newDiscount.discountPercentage),
+                maxUses: Number(newDiscount.maxUses),
+                expiresAt: newDiscount.expiresAt
+            };
+
+            const res = await fetch("http://127.0.0.1:5000/api/discounts", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                alert("Discount code created! 🎉");
+                setNewDiscount({ code: '', discountPercentage: '', maxUses: '', expiresAt: '' });
+                fetchDiscounts();
+            } else {
+                const err = await res.json();
+                alert(err.message || "Failed to create discount");
+                console.error("Backend Validation Error:", err);
+            }
+        } catch (error) {
+            console.error("Error creating discount:", error);
+        }
+    };
     const handleRoleChange = async (userId, newRoleId) => {
         try {
             const token = localStorage.getItem("token");
@@ -153,12 +206,7 @@ export default function AdminDashboard() {
                 body: JSON.stringify({ roleId: newRoleId })
             });
 
-            if (res.ok) {
-                fetchUsers();
-            } else {
-                const err = await res.json();
-                alert(err.message || "Failed to update role");
-            }
+            if (res.ok) fetchUsers();
         } catch (error) {
             console.error("Error updating role:", error);
         }
@@ -179,8 +227,6 @@ export default function AdminDashboard() {
             if (res.ok) {
                 setNewCategoryName('');
                 fetchCategories();
-            } else {
-                alert("Failed to add category");
             }
         } catch (error) {
             console.error("Error adding category:", error);
@@ -197,20 +243,13 @@ export default function AdminDashboard() {
 
     const handleAddItem = async (e) => {
         e.preventDefault();
-
-        // 🔴 بررسی و اطمینان از وجود دسته‌بندی انتخابی
         const selectedCategory = newItem.category || (categories.length > 0 ? categories[0]._id : '');
-
-        if (!newItem.title || !newItem.price || !selectedCategory) {
-            return alert("لطفاً عنوان غذا، قیمت و دسته‌بندی را وارد کنید.");
-        }
+        if (!newItem.title || !newItem.price || !selectedCategory) return alert("Please fill title, price, and category.");
 
         setLoading(true);
         try {
             const token = localStorage.getItem("token");
             const formData = new FormData();
-
-            // 🔴 ارسال همزمان name و title برای همخوانی کامل با بک‌اند
             formData.append('name', newItem.title);
             formData.append('title', newItem.title);
             formData.append('description', newItem.description || '');
@@ -218,39 +257,25 @@ export default function AdminDashboard() {
             formData.append('stock', newItem.stock || 0);
             formData.append('category', selectedCategory);
             formData.append('isAvailable', newItem.isAvailable);
-
-            if (imageFile) {
-                formData.append('image', imageFile);
-            }
+            if (imageFile) formData.append('image', imageFile);
 
             const res = await fetch("http://127.0.0.1:5000/api/menu/menu-items", {
                 method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${token}`
-                },
+                headers: { "Authorization": `Bearer ${token}` },
                 body: formData
             });
 
-            const data = await res.json();
-
             if (res.ok) {
-                setNewItem({
-                    title: '',
-                    description: '',
-                    price: '',
-                    stock: '',
-                    category: categories.length > 0 ? categories[0]._id : '',
-                    isAvailable: true
-                });
+                setNewItem({ title: '', description: '', price: '', stock: '', category: categories.length > 0 ? categories[0]._id : '', isAvailable: true });
                 setImageFile(null);
                 fetchMenuItems();
-                alert("new item sucessfully added🎉");
+                alert("Menu item added successfully! 🎉");
             } else {
-                alert(data.message || "Failed to add menu item");
+                const err = await res.json();
+                alert(err.message || "Failed to add menu item");
             }
         } catch (error) {
             console.error("Error adding item:", error);
-            alert("error connecting to the server");
         } finally {
             setLoading(false);
         }
@@ -264,11 +289,7 @@ export default function AdminDashboard() {
                 method: "DELETE",
                 headers: { "Authorization": `Bearer ${token}` }
             });
-            if (res.ok) {
-                fetchMenuItems();
-            } else {
-                alert("Failed to delete item");
-            }
+            if (res.ok) fetchMenuItems();
         } catch (error) {
             console.error("Error deleting item:", error);
         }
@@ -277,27 +298,36 @@ export default function AdminDashboard() {
     return (
         <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
             <div className="max-w-6xl mx-auto">
-                <h1 className="text-3xl font-extrabold text-gray-900 mb-6">Admin Dashboard ⚙️</h1>
-                <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-xl border shadow-sm">
-                    <span className="text-sm font-bold text-gray-700">
-                        {isForceOpen ? "🟢 open 24/7" : "⏰ normal mode 8-22"}
-                    </span>
-                                <button
-                                    onClick={handleToggleStatus}
-                                    className={`px-3 py-1 rounded-lg text-white font-bold text-xs transition-colors ${
-                                        isForceOpen ? "bg-red-500 hover:bg-red-600" : "bg-green-600 hover:bg-green-700"
-                                    }`}
-                                >
-                                    {isForceOpen ? "غیرفعال‌سازی سوئیچ" : "فعال‌سازی باز بودن دستی"}
-                                </button>
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                    <h1 className="text-3xl font-extrabold text-gray-900">Admin Dashboard ⚙️</h1>
+                    <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-xl border shadow-sm">
+                        <span className="text-sm font-bold text-gray-700">
+                            {isForceOpen ? "🟢 Force Open (24/7)" : "⏰ Working Hours (08:00–22:00)"}
+                        </span>
+                        <button
+                            onClick={handleToggleStatus}
+                            className={`px-3 py-1 rounded-lg text-white font-bold text-xs transition-colors ${
+                                isForceOpen ? "bg-red-500 hover:bg-red-600" : "bg-green-600 hover:bg-green-700"
+                            }`}
+                        >
+                            {isForceOpen ? "Disable Force Open" : "Enable Force Open"}
+                        </button>
+                    </div>
                 </div>
-                {/* Tabs */}
-                <div className="flex gap-4 mb-6 border-b pb-3">
+
+                {/* Tabs Navigation */}
+                <div className="flex gap-4 mb-6 border-b pb-3 flex-wrap">
                     <button
                         onClick={() => setActiveTab("menu")}
                         className={`px-4 py-2 font-bold rounded-lg ${activeTab === 'menu' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}
                     >
                         Menu Management
+                    </button>
+                    <button
+                        onClick={() => setActiveTab("discounts")}
+                        className={`px-4 py-2 font-bold rounded-lg ${activeTab === 'discounts' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}
+                    >
+                        Discounts 🎟️
                     </button>
                     <button
                         onClick={() => setActiveTab("users")}
@@ -313,17 +343,99 @@ export default function AdminDashboard() {
                     </button>
                 </div>
 
+                {/* Discounts Tab */}
+                {activeTab === "discounts" && (
+                    <div className="space-y-8">
+                        <div className="bg-white p-6 rounded-xl shadow-sm border">
+                            <h2 className="text-xl font-bold mb-4">Create New Discount Code 🎟️</h2>
+                            <form onSubmit={handleCreateDiscount} className="space-y-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <input
+                                        type="text"
+                                        placeholder="Discount Code (e.g. FOOD20)"
+                                        value={newDiscount.code}
+                                        onChange={(e) => setNewDiscount({ ...newDiscount, code: e.target.value })}
+                                        className="border p-2 rounded uppercase font-mono"
+                                        required
+                                    />
+                                    <input
+                                        type="number"
+                                        placeholder="Discount Percent (e.g. 20)"
+                                        value={newDiscount.discountPercentage}
+                                        onChange={(e) => setNewDiscount({ ...newDiscount, discountPercentage: e.target.value })}
+                                        min="1"
+                                        max="100"
+                                        className="border p-2 rounded"
+                                        required
+                                    />
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <input
+                                        type="number"
+                                        placeholder="Max Usage Limit (e.g. 50)"
+                                        value={newDiscount.maxUses}
+                                        onChange={(e) => setNewDiscount({ ...newDiscount, maxUses: e.target.value })}
+                                        min="1"
+                                        className="border p-2 rounded"
+                                        required
+                                    />
+                                    <input
+                                        type="date"
+                                        value={newDiscount.expiresAt}
+                                        onChange={(e) => setNewDiscount({ ...newDiscount, expiresAt: e.target.value })}
+                                        className="border p-2 rounded"
+                                        required
+                                    />
+                                </div>
+                                <button type="submit" className="w-full bg-green-600 text-white font-bold py-2.5 rounded-lg hover:bg-green-700">
+                                    Create Discount Code
+                                </button>
+                            </form>
+                        </div>
+
+                        <div className="bg-white p-6 rounded-xl shadow-sm border">
+                            <h2 className="text-xl font-bold mb-4">Active Discounts ({discounts.length})</h2>
+                            {discounts.length === 0 ? (
+                                <p className="text-gray-500">No discount codes created yet.</p>
+                            ) : (
+                                <div className="overflow-x-auto">
+                                    <table className="min-w-full divide-y divide-gray-200">
+                                        <thead>
+                                        <tr>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Code</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Percent</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Used / Max</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Expires At</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-200">
+                                        {discounts.map(d => (
+                                            <tr key={d._id}>
+                                                <td className="px-6 py-4 font-mono font-bold text-indigo-600">{d.code}</td>
+                                                <td className="px-6 py-4 font-bold text-green-600">{d.discountPercentage}%</td>
+                                                <td className="px-6 py-4 text-sm text-gray-600">{d.usedCount || 0} / {d.maxUses}</td>
+                                                <td className="px-6 py-4 text-sm text-gray-500">{new Date(d.expiresAt).toLocaleDateString()}</td>
+                                            </tr>
+                                        ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
                 {/* Sales Analytics Tab */}
                 {activeTab === "analytics" && (
                     <div className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="bg-white p-6 rounded-xl shadow-sm border">
                                 <h3 className="text-gray-500 font-semibold mb-2">Total Revenue</h3>
-                                <p className="text-3xl font-extrabold text-green-600">${analytics.totalRevenue?.toFixed(2)}</p>
+                                <p className="text-3xl font-extrabold text-green-600">${analytics.totalRevenue?.toFixed(2) || "0.00"}</p>
                             </div>
                             <div className="bg-white p-6 rounded-xl shadow-sm border">
                                 <h3 className="text-gray-500 font-semibold mb-2">Total Orders (Delivered)</h3>
-                                <p className="text-3xl font-extrabold text-blue-600">{analytics.totalOrders}</p>
+                                <p className="text-3xl font-extrabold text-blue-600">{analytics.totalOrders || 0}</p>
                             </div>
                         </div>
 
@@ -453,7 +565,7 @@ export default function AdminDashboard() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <select
                                         name="category"
-                                        value={newItem.category}
+                                        value={newItem.category || (categories.length > 0 ? categories[0]._id : '')}
                                         onChange={handleInputChange}
                                         required
                                         className="border p-2 rounded w-full"
@@ -504,7 +616,7 @@ export default function AdminDashboard() {
                             </form>
                         </div>
 
-                        {/* List of Menu Items */}
+                        {/* Current Menu Items List */}
                         <div className="bg-white p-6 rounded-xl shadow-sm border">
                             <h2 className="text-xl font-bold mb-4">Current Menu Items</h2>
                             <div className="overflow-x-auto">
@@ -531,7 +643,7 @@ export default function AdminDashboard() {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.title}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.category?.name || 'Uncategorized'}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-bold">${item.price.toFixed(2)}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-bold">${item.price?.toFixed(2)}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                     <span className={`px-2 py-1 rounded-full text-xs font-bold ${item.stock > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                                                         {item.stock}

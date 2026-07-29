@@ -1,7 +1,6 @@
 const Setting = require('../models/Setting');
 
 const workingHoursMiddleware = async (req, res, next) => {
-  // 🔴 دور زدن محدودیت زمانی در محیط تست (برای جلوگیری از خطای CI در گیت‌هاب)
   if (process.env.NODE_ENV === 'test') {
     return next();
   }
