@@ -16,10 +16,10 @@ export default function CashierDashboard() {
             if (response.ok) {
                 setOrders(data);
             } else {
-                setError(data.message);
+                setError(data.message || "Failed to load orders. Are you logged in as Cashier?");
             }
         } catch (err) {
-            setError("Failed to fetch orders.");
+            setError("Connection error. Server might be down.");
         } finally {
             setLoading(false);
         }
@@ -27,36 +27,38 @@ export default function CashierDashboard() {
 
     useEffect(() => {
         fetchOrders();
-        // Auto-refresh every 15 seconds
-        const interval = setInterval(fetchOrders, 15000);
+        const interval = setInterval(fetchOrders, 10000);
         return () => clearInterval(interval);
     }, []);
 
-    const handleDeliverOrder = async (orderId) => {
+    const deliverOrder = async (id) => {
         try {
             const token = localStorage.getItem("token");
-            const response = await fetch(`http://127.0.0.1:5000/api/orders/${orderId}/deliver`, {
+            const response = await fetch(`http://127.0.0.1:5000/api/orders/${id}/deliver`, {
                 method: "PATCH",
-                headers: { "Authorization": `Bearer ${token}` }
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                }
             });
 
             if (response.ok) {
-                // Remove the order from the UI once it's delivered
-                setOrders(prev => prev.filter(order => order._id !== orderId));
+                setOrders(prevOrders => prevOrders.filter(order => order._id !== id));
             } else {
-                alert("Failed to deliver order.");
+                const data = await response.json();
+                alert(data.message || "Failed to update status");
             }
-        } catch (err) {
-            alert("Network error.");
+        } catch (error) {
+            alert("Network error while delivering order.");
         }
     };
 
-    if (loading) return <div className="text-center mt-20 font-bold">Loading Cashier View...</div>;
+    if (loading && orders.length === 0) return <div className="text-center mt-20 text-xl font-bold">Loading Orders... ⏳</div>;
     if (error) return <div className="text-center mt-20 text-red-500 font-bold">{error}</div>;
 
     return (
         <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-4xl mx-auto">
+            <div className="max-w-7xl mx-auto">
                 <h1 className="text-3xl font-extrabold text-gray-900 mb-8 flex justify-between items-center">
                     <span>Cashier Dashboard 💵</span>
                     <button onClick={fetchOrders} className="text-sm bg-gray-200 hover:bg-gray-300 text-gray-800 py-1 px-3 rounded-lg">
@@ -64,43 +66,42 @@ export default function CashierDashboard() {
                     </button>
                 </h1>
 
-                <div className="bg-green-50 p-6 rounded-2xl border border-green-100 shadow-sm">
-                    <h2 className="text-xl font-bold text-green-800 mb-6 flex items-center justify-between border-b border-green-200 pb-3">
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+                    <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center justify-between border-b pb-4">
                         <span>Ready for Delivery</span>
-                        <span className="bg-green-200 text-green-800 px-3 py-1 rounded-full text-sm">{orders.length} Orders</span>
+                        <span className="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">
+                            {orders.length} Orders
+                        </span>
                     </h2>
 
                     {orders.length === 0 ? (
-                        <p className="text-gray-500 font-medium">No orders waiting for delivery.</p>
+                        <p className="text-gray-500 text-center py-8">No orders ready for delivery at the moment.</p>
                     ) : (
-                        <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {orders.map(order => (
-                                <div key={order._id} className="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                    <div>
-                                        <div className="flex items-center gap-3 mb-2">
-                                            <span className="font-extrabold text-gray-800 text-lg">#{order._id.slice(-6)}</span>
-                                            <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-1 rounded-md">
-                                                {new Date(order.createdAt).toLocaleTimeString()}
-                                            </span>
-                                        </div>
-
-                                        <ul className="mb-2 text-sm text-gray-700">
-                                            {order.items.map((item, index) => (
-                                                <li key={index} className="flex items-start">
-                                                    <span className="font-bold mr-2">{item.quantity}x</span>
-                                                    {item.menuItem?.title || 'Unknown Item'}
-                                                </li>
-                                            ))}
-                                        </ul>
-                                        <div className="font-black text-blue-600 text-lg">Total: ${order.totalPrice?.toFixed(2)}</div>
+                                <div key={order._id} className="bg-gray-50 p-5 rounded-xl border border-gray-200 flex flex-col">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <span className="font-extrabold text-gray-900 text-lg">#{order._id.slice(-6)}</span>
+                                        <span className="text-xs font-semibold text-gray-500 bg-white px-2 py-1 rounded-md border border-gray-200">
+                                            {new Date(order.createdAt).toLocaleTimeString()}
+                                        </span>
                                     </div>
-
-                                    <button
-                                        onClick={() => handleDeliverOrder(order._id)}
-                                        className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-xl transition-colors shadow-sm whitespace-nowrap"
-                                    >
-                                        Deliver & Complete
-                                    </button>
+                                    <ul className="mb-6 text-sm text-gray-700 flex-grow space-y-2">
+                                        {order.items.map((item, index) => (
+                                            <li key={index} className="flex items-start">
+                                                <span className="font-bold mr-2 text-indigo-600">{item.quantity}x</span>
+                                                {item.menuItem?.title || "Food Item"}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                    <div className="mt-auto pt-4 border-t border-gray-200">
+                                        <button
+                                            onClick={() => deliverOrder(order._id)}
+                                            className="w-full py-3 rounded-lg text-white font-bold transition-colors shadow-sm bg-green-500 hover:bg-green-600"
+                                        >
+                                            Deliver Order ✔️
+                                        </button>
+                                    </div>
                                 </div>
                             ))}
                         </div>

@@ -36,9 +36,9 @@ export default function KitchenDashboard() {
             const token = localStorage.getItem("token");
 
             let endpoint = "";
-            if (newStatus === 'preparing') {
+            if (newStatus === 'Preparing') {
                 endpoint = `http://127.0.0.1:5000/api/orders/${id}/start`;
-            } else if (newStatus === 'ready') {
+            } else if (newStatus === 'Ready for Delivery') {
                 endpoint = `http://127.0.0.1:5000/api/orders/${id}/ready`;
             }
 
@@ -108,13 +108,13 @@ export default function KitchenDashboard() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="bg-red-50 p-4 rounded-2xl border border-red-100">
                         <h2 className="text-lg font-bold text-red-800 mb-4 flex items-center justify-between border-b border-red-200 pb-2">
-                            <span>Pending</span>
+                            <span>Registered (Pending)</span>
                             <span className="bg-red-200 text-red-800 text-xs px-2 py-1 rounded-full">
-                                {orders.filter(o => o.status.toLowerCase() === 'pending').length}
+                                {orders.filter(o => o.status.toLowerCase() === 'registered').length}
                             </span>
                         </h2>
-                        {orders.filter(o => o.status.toLowerCase() === 'pending').map(order =>
-                            renderOrderCard(order, 'preparing', 'Start Preparing', 'bg-blue-500 hover:bg-blue-600')
+                        {orders.filter(o => o.status.toLowerCase() === 'registered').map(order =>
+                            renderOrderCard(order, 'Preparing', 'Start Preparing', 'bg-blue-500 hover:bg-blue-600')
                         )}
                     </div>
 
@@ -126,18 +126,18 @@ export default function KitchenDashboard() {
                             </span>
                         </h2>
                         {orders.filter(o => o.status.toLowerCase() === 'preparing').map(order =>
-                            renderOrderCard(order, 'ready', 'Mark as Ready', 'bg-green-500 hover:bg-green-600')
+                            renderOrderCard(order, 'Ready for Delivery', 'Mark as Ready', 'bg-green-500 hover:bg-green-600')
                         )}
                     </div>
 
                     <div className="bg-green-50 p-4 rounded-2xl border border-green-100">
                         <h2 className="text-lg font-bold text-green-800 mb-4 flex items-center justify-between border-b border-green-200 pb-2">
-                            <span>Ready for Cashier</span>
+                            <span>Ready for Delivery</span>
                             <span className="bg-green-200 text-green-800 text-xs px-2 py-1 rounded-full">
-                                {orders.filter(o => o.status.toLowerCase() === 'ready').length}
+                                {orders.filter(o => o.status.toLowerCase() === 'ready for delivery').length}
                             </span>
                         </h2>
-                        {orders.filter(o => o.status.toLowerCase() === 'ready').map(order =>
+                        {orders.filter(o => o.status.toLowerCase() === 'ready for delivery').map(order =>
                             renderOrderCard(order, null, '', '')
                         )}
                     </div>
