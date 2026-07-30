@@ -51,6 +51,21 @@ export default function AdminDashboard() {
     });
     const [ordersLoading, setOrdersLoading] = useState(false);
 
+    // Audit Logs State
+    const [auditLogs, setAuditLogs] = useState([]);
+    const [logsFilters, setLogsFilters] = useState({
+        orderId: '',
+        startDate: '',
+        endDate: '',
+        page: 1,
+        limit: 10
+    });
+    const [logsPagination, setLogsPagination] = useState({
+        total: 0,
+        pages: 1
+    });
+    const [logsLoading, setLogsLoading] = useState(false);
+
     // --- Fetch Functions ---
     const fetchCategories = async () => {
         try {
@@ -174,8 +189,6 @@ export default function AdminDashboard() {
 
             if (res.ok) {
                 const data = await res.json();
-                // Assuming backend returns { orders: [...], total: X, pages: Y } or similar paginated structure.
-                // If backend just returns an array, adjust this logic.
                 if (Array.isArray(data)) {
                     setAdminOrders(data);
                 } else if (data.orders) {
@@ -195,6 +208,44 @@ export default function AdminDashboard() {
         }
     };
 
+    const fetchAuditLogs = async () => {
+        setLogsLoading(true);
+        try {
+            const token = localStorage.getItem("token");
+
+            const params = new URLSearchParams();
+            if (logsFilters.page) params.append('page', logsFilters.page);
+            if (logsFilters.limit) params.append('limit', logsFilters.limit);
+            if (logsFilters.orderId) params.append('orderId', logsFilters.orderId);
+            if (logsFilters.startDate) params.append('startDate', logsFilters.startDate);
+            if (logsFilters.endDate) params.append('endDate', logsFilters.endDate);
+
+            const res = await fetch(`http://127.0.0.1:5000/api/admin/logs?${params.toString()}`, {
+                headers: {"Authorization": `Bearer ${token}`}
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                if (Array.isArray(data)) {
+                    setAuditLogs(data);
+                } else if (data.logs) {
+                    setAuditLogs(data.logs);
+                    setLogsPagination({
+                        total: data.totalLogs || data.logs.length,
+                        pages: data.totalPages || 1
+                    });
+                }
+            } else {
+                console.error("Failed to fetch audit logs");
+            }
+        } catch (error) {
+            console.error("Error fetching audit logs:", error);
+        } finally {
+            setLogsLoading(false);
+        }
+    };
+
+
     useEffect(() => {
         fetchCategories();
         fetchMenuItems();
@@ -211,6 +262,14 @@ export default function AdminDashboard() {
             fetchAdminOrders();
         }
     }, [activeTab, orderFilters.page, orderFilters.status, orderFilters.userId, orderFilters.startDate, orderFilters.endDate]);
+
+    // Fetch logs when the logs tab is selected or filters change
+    useEffect(() => {
+        if (activeTab === 'logs') {
+            fetchAuditLogs();
+        }
+    }, [activeTab, logsFilters.page, logsFilters.orderId, logsFilters.startDate, logsFilters.endDate]);
+
 
     // --- Handlers ---
     const handleToggleStatus = async () => {
@@ -462,13 +521,29 @@ export default function AdminDashboard() {
     // Orders Handlers
     const handleOrderFilterChange = (e) => {
         const { name, value } = e.target;
-        setOrderFilters(prev => ({ ...prev, [name]: value, page: 1 })); // Reset to page 1 on filter change
+        setOrderFilters(prev => ({ ...prev, [name]: value, page: 1 }));
     };
 
     const clearOrderFilters = () => {
         setOrderFilters({
             status: '',
             userId: '',
+            startDate: '',
+            endDate: '',
+            page: 1,
+            limit: 10
+        });
+    };
+
+    // Logs Handlers
+    const handleLogsFilterChange = (e) => {
+        const { name, value } = e.target;
+        setLogsFilters(prev => ({ ...prev, [name]: value, page: 1 }));
+    };
+
+    const clearLogsFilters = () => {
+        setLogsFilters({
+            orderId: '',
             startDate: '',
             endDate: '',
             page: 1,
@@ -511,6 +586,12 @@ export default function AdminDashboard() {
                         Orders 📦
                     </button>
                     <button
+                        onClick={() => setActiveTab("logs")}
+                        className={`px-4 py-2 font-bold rounded-lg ${activeTab === 'logs' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}
+                    >
+                        Audit Logs 📝
+                    </button>
+                    <button
                         onClick={() => setActiveTab("discounts")}
                         className={`px-4 py-2 font-bold rounded-lg ${activeTab === 'discounts' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}
                     >
@@ -529,6 +610,136 @@ export default function AdminDashboard() {
                         Sales Analytics
                     </button>
                 </div>
+
+                {/* Audit Logs Tab */}
+                {activeTab === "logs" && (
+                    <div className="space-y-6">
+                        {/* Filters Section */}
+                        <div className="bg-white p-6 rounded-xl shadow-sm border">
+                            <div className="flex justify-between items-center mb-4">
+                                <h2 className="text-xl font-bold">Order Audit Logs</h2>
+                                <button onClick={fetchAuditLogs} className="text-sm bg-gray-200 hover:bg-gray-300 text-gray-800 py-1 px-3 rounded-lg">
+                                    🔄 Refresh
+                                </button>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-500 mb-1">Order ID</label>
+                                    <input
+                                        type="text"
+                                        name="orderId"
+                                        value={logsFilters.orderId}
+                                        onChange={handleLogsFilterChange}
+                                        placeholder="Specific Order ID..."
+                                        className="border p-2 rounded w-full text-sm"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-500 mb-1">Start Date</label>
+                                    <input
+                                        type="date"
+                                        name="startDate"
+                                        value={logsFilters.startDate}
+                                        onChange={handleLogsFilterChange}
+                                        className="border p-2 rounded w-full text-sm"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-500 mb-1">End Date</label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="date"
+                                            name="endDate"
+                                            value={logsFilters.endDate}
+                                            onChange={handleLogsFilterChange}
+                                            className="border p-2 rounded w-full text-sm flex-grow"
+                                        />
+                                        <button
+                                            onClick={clearLogsFilters}
+                                            className="bg-gray-100 border border-gray-300 text-gray-600 px-3 rounded hover:bg-gray-200 text-sm"
+                                            title="Clear Filters"
+                                        >
+                                            X
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Logs List Section */}
+                        <div className="bg-white p-6 rounded-xl shadow-sm border overflow-hidden">
+                            {logsLoading ? (
+                                <div className="text-center py-10 text-gray-500 font-bold">Loading Logs... ⏳</div>
+                            ) : auditLogs.length === 0 ? (
+                                <div className="text-center py-10 text-gray-500 font-medium">No logs found matching criteria.</div>
+                            ) : (
+                                <div className="overflow-x-auto">
+                                    <table className="min-w-full divide-y divide-gray-200">
+                                        <thead className="bg-gray-50">
+                                        <tr>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Log ID</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status Change</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Changed By</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody className="bg-white divide-y divide-gray-200">
+                                        {auditLogs.map(log => (
+                                            <tr key={log._id} className="hover:bg-gray-50">
+                                                <td className="px-6 py-4 whitespace-nowrap text-xs font-mono text-gray-500">
+                                                    {log._id?.slice(-6)}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                                                    {new Date(log.changed_at).toLocaleString()}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-indigo-600">
+                                                    #{log.order_id?._id?.slice(-6) || log.order_id?.slice(-6) || "Unknown"}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                                    <div className="flex items-center space-x-2">
+                                                        <span className="text-gray-500 line-through">{log.old_status}</span>
+                                                        <span className="text-gray-400">➡️</span>
+                                                        <span className="font-bold text-gray-900">{log.new_status}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    {log.changed_by?.name || log.changed_by || "System"}
+                                                    {log.changed_by?.email && <span className="block text-xs text-gray-400">{log.changed_by.email}</span>}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+
+                            {/* Pagination Controls */}
+                            <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
+                                <span className="text-sm text-gray-500">
+                                    Page {logsFilters.page} {logsPagination.pages > 1 ? `of ${logsPagination.pages}` : ''}
+                                </span>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => setLogsFilters(prev => ({...prev, page: Math.max(1, prev.page - 1)}))}
+                                        disabled={logsFilters.page === 1}
+                                        className="px-3 py-1 border rounded text-sm disabled:opacity-50 font-medium"
+                                    >
+                                        Previous
+                                    </button>
+                                    <button
+                                        onClick={() => setLogsFilters(prev => ({...prev, page: prev.page + 1}))}
+                                        disabled={logsFilters.page >= logsPagination.pages}
+                                        className="px-3 py-1 border rounded text-sm disabled:opacity-50 font-medium"
+                                    >
+                                        Next
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Orders Management Tab (Master View) */}
                 {activeTab === "orders" && (
@@ -637,7 +848,7 @@ export default function AdminDashboard() {
                                                     <ul className="list-disc list-inside">
                                                         {order.items?.map((item, idx) => (
                                                             <li key={idx} className="truncate max-w-[200px]">
-                                                                {item.quantity}x {item.menuItem?.name || item.menuItem?.title || "Item"}
+                                                                {item.quantity}x {item.name || item.title || item.menuItem?.name || item.menuItem?.title || "Food Item"}
                                                             </li>
                                                         ))}
                                                     </ul>
