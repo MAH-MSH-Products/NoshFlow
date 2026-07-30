@@ -124,15 +124,15 @@ export default function Cart() {
                             <li key={item._id} className="p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
                                 <div className="flex items-center gap-4 flex-1 w-full">
                                     <div className="flex-1">
-                                        <h3 className="text-lg font-bold text-gray-800">{item.title}</h3>
+                                        <h3 className="text-lg font-bold text-gray-800">{item.name}</h3>
                                         <p className="text-gray-500 text-sm">${item.price.toFixed(2)} each</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-4 justify-between w-full sm:w-auto">
                                     <div className="flex items-center border rounded-lg">
-                                        <button onClick={() => updateQuantity(item._id, -1)} className="px-3 py-1 hover:bg-gray-100 font-bold">-</button>
+                                        <button onClick={() => updateQuantity(item._id, item.quantity - 1)} className="px-3 py-1 hover:bg-gray-100 font-bold">-</button>
                                         <span className="px-3 font-medium">{item.quantity}</span>
-                                        <button onClick={() => updateQuantity(item._id, 1)} className="px-3 py-1 hover:bg-gray-100 font-bold">+</button>
+                                        <button onClick={() => updateQuantity(item._id, item.quantity + 1)} className="px-3 py-1 hover:bg-gray-100 font-bold">+</button>
                                     </div>
                                     <div className="font-bold text-lg w-20 text-right text-gray-800">${(item.price * item.quantity).toFixed(2)}</div>
                                     <button onClick={() => removeFromCart(item._id)} className="text-red-500 hover:text-red-700 font-semibold p-2 text-sm">Remove</button>
