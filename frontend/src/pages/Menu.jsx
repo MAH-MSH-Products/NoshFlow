@@ -4,9 +4,10 @@ import { useCart } from '../context/CartContext';
 
 export default function Menu() {
     const [menuItems, setMenuItems] = useState([]);
-    const [categories, setCategories] = useState(["All"]);
 
-    const [selectedCategory, setSelectedCategory] = useState("All");
+    const [categories, setCategories] = useState([{ _id: "All", name: "All" }]);
+    const [selectedCategory, setSelectedCategory] = useState("All"); // اینجا حالا _id ذخیره میشه
+
     const [searchTerm, setSearchTerm] = useState("");
     const [minPrice, setMinPrice] = useState("");
     const [maxPrice, setMaxPrice] = useState("");
@@ -19,6 +20,7 @@ export default function Menu() {
         setLoading(true);
         try {
             let url = new URL("http://127.0.0.1:5000/api/menu/menu-items");
+
             if (selectedCategory !== "All") url.searchParams.append("category", selectedCategory);
             if (searchTerm) url.searchParams.append("search", searchTerm);
             if (minPrice) url.searchParams.append("minPrice", minPrice);
@@ -29,8 +31,20 @@ export default function Menu() {
 
             if (response.ok) {
                 setMenuItems(data);
+
                 if (categories.length === 1 && data.length > 0) {
-                    const uniqueCategories = ["All", ...new Set(data.map(item => item.category?.name || item.category || "General"))];
+                    const catMap = new Map();
+                    data.forEach(item => {
+                        if (item.category && item.category._id) {
+                            catMap.set(item.category._id, item.category.name);
+                        }
+                    });
+
+                    const uniqueCategories = [{ _id: "All", name: "All" }];
+                    catMap.forEach((name, _id) => {
+                        uniqueCategories.push({ _id, name });
+                    });
+
                     setCategories(uniqueCategories);
                 }
             } else {
@@ -59,41 +73,19 @@ export default function Menu() {
                     <p className="text-gray-500 max-w-2xl mx-auto">Find your favorite meals, filter by price, or explore our categories.</p>
                 </div>
 
-                <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 mb-8 flex flex-col md:flex-row gap-4 items-center justify-between">
-                    <div className="w-full md:w-1/3">
-                        <input
-                            type="text"
-                            placeholder="🔍 Search for food..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                    </div>
-                    <div className="w-full md:w-auto flex gap-2 items-center">
-                        <span className="text-sm font-bold text-gray-500">Price:</span>
-                        <input
-                            type="number"
-                            placeholder="Min $"
-                            value={minPrice}
-                            onChange={(e) => setMinPrice(e.target.value)}
-                            className="w-24 px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                        />
-                        <span className="text-gray-400">-</span>
-                        <input
-                            type="number"
-                            placeholder="Max $"
-                            value={maxPrice}
-                            onChange={(e) => setMaxPrice(e.target.value)}
-                            className="w-24 px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                        />
-                    </div>
-                </div>
 
                 <div className="flex flex-wrap justify-center gap-3 mb-10">
-                    {categories.map(category => (
-                        <button key={category} onClick={() => setSelectedCategory(category)}
-                                className={`px-5 py-2 rounded-full font-bold text-sm transition-all shadow-sm ${selectedCategory === category ? "bg-blue-600 text-white" : "bg-white text-gray-600 hover:bg-gray-100"}`}>
-                            {category}
+                    {categories.map(cat => (
+                        <button
+                            key={cat._id}
+                            onClick={() => setSelectedCategory(cat._id)}
+                            className={`px-5 py-2 rounded-full font-bold text-sm transition-all shadow-sm ${
+                                selectedCategory === cat._id
+                                    ? "bg-blue-600 text-white"
+                                    : "bg-white text-gray-600 hover:bg-gray-100"
+                            }`}
+                        >
+                            {cat.name}
                         </button>
                     ))}
                 </div>
