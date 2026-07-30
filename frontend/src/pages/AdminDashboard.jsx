@@ -19,6 +19,10 @@ export default function AdminDashboard() {
     const [newCategoryName, setNewCategoryName] = useState('');
     const [imageFile, setImageFile] = useState(null);
 
+    // Edit state
+    const [editingItemId, setEditingItemId] = useState(null);
+    const [editItemData, setEditItemData] = useState({ name: '', price: '', description: '' });
+
     // Users & Roles
     const [users, setUsers] = useState([]);
     const [roles, setRoles] = useState([]);
@@ -30,6 +34,22 @@ export default function AdminDashboard() {
     // Discounts
     const [discounts, setDiscounts] = useState([]);
     const [newDiscount, setNewDiscount] = useState({code: '', discountPercentage: '', maxUses: '', expiresAt: ''});
+
+    // Orders Management (Master View)
+    const [adminOrders, setAdminOrders] = useState([]);
+    const [orderFilters, setOrderFilters] = useState({
+        status: '',
+        userId: '',
+        startDate: '',
+        endDate: '',
+        page: 1,
+        limit: 10
+    });
+    const [ordersPagination, setOrdersPagination] = useState({
+        total: 0,
+        pages: 1
+    });
+    const [ordersLoading, setOrdersLoading] = useState(false);
 
     // --- Fetch Functions ---
     const fetchCategories = async () => {
@@ -134,6 +154,47 @@ export default function AdminDashboard() {
         }
     };
 
+    const fetchAdminOrders = async () => {
+        setOrdersLoading(true);
+        try {
+            const token = localStorage.getItem("token");
+
+            // Build Query Params
+            const params = new URLSearchParams();
+            if (orderFilters.page) params.append('page', orderFilters.page);
+            if (orderFilters.limit) params.append('limit', orderFilters.limit);
+            if (orderFilters.status) params.append('status', orderFilters.status);
+            if (orderFilters.userId) params.append('userId', orderFilters.userId);
+            if (orderFilters.startDate) params.append('startDate', orderFilters.startDate);
+            if (orderFilters.endDate) params.append('endDate', orderFilters.endDate);
+
+            const res = await fetch(`http://127.0.0.1:5000/api/admin/orders?${params.toString()}`, {
+                headers: {"Authorization": `Bearer ${token}`}
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                // Assuming backend returns { orders: [...], total: X, pages: Y } or similar paginated structure.
+                // If backend just returns an array, adjust this logic.
+                if (Array.isArray(data)) {
+                    setAdminOrders(data);
+                } else if (data.orders) {
+                    setAdminOrders(data.orders);
+                    setOrdersPagination({
+                        total: data.total || data.orders.length,
+                        pages: data.pages || 1
+                    });
+                }
+            } else {
+                console.error("Failed to fetch admin orders");
+            }
+        } catch (error) {
+            console.error("Error fetching admin orders:", error);
+        } finally {
+            setOrdersLoading(false);
+        }
+    };
+
     useEffect(() => {
         fetchCategories();
         fetchMenuItems();
@@ -143,6 +204,13 @@ export default function AdminDashboard() {
         fetchRestaurantStatus();
         fetchDiscounts();
     }, []);
+
+    // Fetch orders when the orders tab is selected or filters change
+    useEffect(() => {
+        if (activeTab === 'orders') {
+            fetchAdminOrders();
+        }
+    }, [activeTab, orderFilters.page, orderFilters.status, orderFilters.userId, orderFilters.startDate, orderFilters.endDate]);
 
     // --- Handlers ---
     const handleToggleStatus = async () => {
@@ -189,6 +257,7 @@ export default function AdminDashboard() {
             console.error("Error updating availability:", error);
         }
     };
+
     const handleCreateDiscount = async (e) => {
         e.preventDefault();
         try {
@@ -225,6 +294,7 @@ export default function AdminDashboard() {
             console.error("Error creating discount:", error);
         }
     };
+
     const handleRoleChange = async (userId, newRoleId) => {
         try {
             const token = localStorage.getItem("token");
@@ -263,6 +333,7 @@ export default function AdminDashboard() {
             console.error("Error adding category:", error);
         }
     };
+
     const handleUpdateStock = async (id, currentStock, change) => {
         const newStock = currentStock + change;
         if (newStock < 0) return;
@@ -289,6 +360,7 @@ export default function AdminDashboard() {
             alert("Network error updating stock");
         }
     };
+
     const handleInputChange = (e) => {
         const {name, value, type, checked} = e.target;
         setNewItem(prev => ({
@@ -344,6 +416,35 @@ export default function AdminDashboard() {
         }
     };
 
+    const handleUpdateItemDetails = async (id) => {
+        try {
+            const token = localStorage.getItem("token");
+            const res = await fetch(`http://127.0.0.1:5000/api/menu/menu-items/${id}`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    name: editItemData.name,
+                    price: Number(editItemData.price),
+                    description: editItemData.description
+                })
+            });
+
+            if (res.ok) {
+                setEditingItemId(null);
+                fetchMenuItems();
+            } else {
+                const err = await res.json();
+                alert(err.message || "Failed to update item");
+            }
+        } catch (error) {
+            console.error("Error updating item details:", error);
+            alert("Network error while updating item");
+        }
+    };
+
     const handleDeleteItem = async (id) => {
         if (!window.confirm("Are you sure you want to delete this item?")) return;
         try {
@@ -356,6 +457,23 @@ export default function AdminDashboard() {
         } catch (error) {
             console.error("Error deleting item:", error);
         }
+    };
+
+    // Orders Handlers
+    const handleOrderFilterChange = (e) => {
+        const { name, value } = e.target;
+        setOrderFilters(prev => ({ ...prev, [name]: value, page: 1 })); // Reset to page 1 on filter change
+    };
+
+    const clearOrderFilters = () => {
+        setOrderFilters({
+            status: '',
+            userId: '',
+            startDate: '',
+            endDate: '',
+            page: 1,
+            limit: 10
+        });
     };
 
     return (
@@ -387,6 +505,12 @@ export default function AdminDashboard() {
                         Menu Management
                     </button>
                     <button
+                        onClick={() => setActiveTab("orders")}
+                        className={`px-4 py-2 font-bold rounded-lg ${activeTab === 'orders' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}
+                    >
+                        Orders 📦
+                    </button>
+                    <button
                         onClick={() => setActiveTab("discounts")}
                         className={`px-4 py-2 font-bold rounded-lg ${activeTab === 'discounts' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}
                     >
@@ -405,6 +529,163 @@ export default function AdminDashboard() {
                         Sales Analytics
                     </button>
                 </div>
+
+                {/* Orders Management Tab (Master View) */}
+                {activeTab === "orders" && (
+                    <div className="space-y-6">
+                        {/* Filters Section */}
+                        <div className="bg-white p-6 rounded-xl shadow-sm border">
+                            <div className="flex justify-between items-center mb-4">
+                                <h2 className="text-xl font-bold">Orders Master View</h2>
+                                <button onClick={fetchAdminOrders} className="text-sm bg-gray-200 hover:bg-gray-300 text-gray-800 py-1 px-3 rounded-lg">
+                                    🔄 Refresh
+                                </button>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-500 mb-1">Status</label>
+                                    <select
+                                        name="status"
+                                        value={orderFilters.status}
+                                        onChange={handleOrderFilterChange}
+                                        className="border p-2 rounded w-full text-sm"
+                                    >
+                                        <option value="">All Statuses</option>
+                                        <option value="Registered">Registered</option>
+                                        <option value="Preparing">Preparing</option>
+                                        <option value="Ready for Delivery">Ready for Delivery</option>
+                                        <option value="Delivered">Delivered</option>
+                                        <option value="Cancelled">Cancelled</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-500 mb-1">User ID</label>
+                                    <input
+                                        type="text"
+                                        name="userId"
+                                        value={orderFilters.userId}
+                                        onChange={handleOrderFilterChange}
+                                        placeholder="Specific User ID..."
+                                        className="border p-2 rounded w-full text-sm"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-500 mb-1">Start Date</label>
+                                    <input
+                                        type="date"
+                                        name="startDate"
+                                        value={orderFilters.startDate}
+                                        onChange={handleOrderFilterChange}
+                                        className="border p-2 rounded w-full text-sm"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-500 mb-1">End Date</label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="date"
+                                            name="endDate"
+                                            value={orderFilters.endDate}
+                                            onChange={handleOrderFilterChange}
+                                            className="border p-2 rounded w-full text-sm flex-grow"
+                                        />
+                                        <button
+                                            onClick={clearOrderFilters}
+                                            className="bg-gray-100 border border-gray-300 text-gray-600 px-3 rounded hover:bg-gray-200 text-sm"
+                                            title="Clear Filters"
+                                        >
+                                            X
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Orders List Section */}
+                        <div className="bg-white p-6 rounded-xl shadow-sm border overflow-hidden">
+                            {ordersLoading ? (
+                                <div className="text-center py-10 text-gray-500 font-bold">Loading Orders... ⏳</div>
+                            ) : adminOrders.length === 0 ? (
+                                <div className="text-center py-10 text-gray-500 font-medium">No orders found matching criteria.</div>
+                            ) : (
+                                <div className="overflow-x-auto">
+                                    <table className="min-w-full divide-y divide-gray-200">
+                                        <thead className="bg-gray-50">
+                                        <tr>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Items</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody className="bg-white divide-y divide-gray-200">
+                                        {adminOrders.map(order => (
+                                            <tr key={order._id} className="hover:bg-gray-50">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
+                                                    #{order._id?.slice(-6)}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    {new Date(order.createdAt).toLocaleString()}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    {order.user?.name || order.user || "Unknown"}
+                                                </td>
+                                                <td className="px-6 py-4 text-sm text-gray-500">
+                                                    <ul className="list-disc list-inside">
+                                                        {order.items?.map((item, idx) => (
+                                                            <li key={idx} className="truncate max-w-[200px]">
+                                                                {item.quantity}x {item.menuItem?.name || item.menuItem?.title || "Item"}
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600">
+                                                    ${order.finalPrice?.toFixed(2) || order.totalPrice?.toFixed(2)}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                                            ${order.status === 'Delivered' ? 'bg-green-100 text-green-800' :
+                                                            order.status === 'Cancelled' ? 'bg-red-100 text-red-800' :
+                                                                order.status === 'Preparing' ? 'bg-blue-100 text-blue-800' :
+                                                                    'bg-yellow-100 text-yellow-800'}`}>
+                                                            {order.status}
+                                                        </span>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+
+                            {/* Simple Pagination Controls (if needed) */}
+                            <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
+                                <span className="text-sm text-gray-500">
+                                    Page {orderFilters.page} {ordersPagination.pages > 1 ? `of ${ordersPagination.pages}` : ''}
+                                </span>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => setOrderFilters(prev => ({...prev, page: Math.max(1, prev.page - 1)}))}
+                                        disabled={orderFilters.page === 1}
+                                        className="px-3 py-1 border rounded text-sm disabled:opacity-50 font-medium"
+                                    >
+                                        Previous
+                                    </button>
+                                    <button
+                                        onClick={() => setOrderFilters(prev => ({...prev, page: prev.page + 1}))}
+                                        disabled={orderFilters.page >= ordersPagination.pages && adminOrders.length < orderFilters.limit}
+                                        className="px-3 py-1 border rounded text-sm disabled:opacity-50 font-medium"
+                                    >
+                                        Next
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Discounts Tab */}
                 {activeTab === "discounts" && (
@@ -718,9 +999,51 @@ export default function AdminDashboard() {
                                                         Img</div>
                                                 )}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.name}</td>
+
+                                            {/* Title & Description Cell */}
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                                {editingItemId === item._id ? (
+                                                    <div className="flex flex-col gap-2">
+                                                        <input
+                                                            type="text"
+                                                            value={editItemData.name}
+                                                            onChange={(e) => setEditItemData({...editItemData, name: e.target.value})}
+                                                            className="border p-1 rounded w-full font-normal"
+                                                            placeholder="Title"
+                                                        />
+                                                        <input
+                                                            type="text"
+                                                            value={editItemData.description}
+                                                            onChange={(e) => setEditItemData({...editItemData, description: e.target.value})}
+                                                            className="border p-1 rounded w-full text-xs font-normal"
+                                                            placeholder="Description"
+                                                        />
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex flex-col">
+                                                        <span>{item.name}</span>
+                                                        {item.description && <span className="text-xs text-gray-500 font-normal">{item.description}</span>}
+                                                    </div>
+                                                )}
+                                            </td>
+
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.category?.name || 'Uncategorized'}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-bold">${item.price?.toFixed(2)}</td>
+
+                                            {/* Price Cell */}
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-bold">
+                                                {editingItemId === item._id ? (
+                                                    <input
+                                                        type="number"
+                                                        step="0.01"
+                                                        value={editItemData.price}
+                                                        onChange={(e) => setEditItemData({...editItemData, price: e.target.value})}
+                                                        className="border p-1 rounded w-20 font-normal"
+                                                    />
+                                                ) : (
+                                                    `$${item.price?.toFixed(2)}`
+                                                )}
+                                            </td>
+
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                 <div className="flex items-center gap-2">
                                                     <button
@@ -753,11 +1076,23 @@ export default function AdminDashboard() {
                                                     {item.isAvailable !== false ? 'Available ✅' : 'Unavailable ❌'}
                                                 </button>
                                             </td>
+
+                                            {/* Actions Cell */}
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                <button onClick={() => handleDeleteItem(item._id)}
-                                                        className="text-red-600 hover:text-red-900 font-bold">
-                                                    Delete
-                                                </button>
+                                                {editingItemId === item._id ? (
+                                                    <div className="flex gap-3">
+                                                        <button onClick={() => handleUpdateItemDetails(item._id)} className="text-green-600 hover:text-green-900 font-bold">Save</button>
+                                                        <button onClick={() => setEditingItemId(null)} className="text-gray-600 hover:text-gray-900 font-bold">Cancel</button>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex gap-3">
+                                                        <button onClick={() => {
+                                                            setEditingItemId(item._id);
+                                                            setEditItemData({ name: item.name, price: item.price, description: item.description || '' });
+                                                        }} className="text-blue-600 hover:text-blue-900 font-bold">Edit</button>
+                                                        <button onClick={() => handleDeleteItem(item._id)} className="text-red-600 hover:text-red-900 font-bold">Delete</button>
+                                                    </div>
+                                                )}
                                             </td>
                                         </tr>
                                     ))}
