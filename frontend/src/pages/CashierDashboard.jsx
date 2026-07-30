@@ -90,7 +90,7 @@ export default function CashierDashboard() {
                                         {order.items.map((item, index) => (
                                             <li key={index} className="flex items-start">
                                                 <span className="font-bold mr-2 text-indigo-600">{item.quantity}x</span>
-                                                {item.menuItem?.title || "Food Item"}
+                                                {item.name || item.title || item.menuItem?.name || item.menuItem?.title || "Food Item"}
                                             </li>
                                         ))}
                                     </ul>

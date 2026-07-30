@@ -77,7 +77,7 @@ export default function KitchenDashboard() {
                 {order.items.map((item, index) => (
                     <li key={index} className="flex items-start">
                         <span className="font-bold mr-2">{item.quantity}x</span>
-                        {item.menuItem?.title || "Food Item"}
+                        {item.name || item.title || item.menuItem?.name || item.menuItem?.title || "Food Item"}
                     </li>
                 ))}
             </ul>
@@ -99,7 +99,7 @@ export default function KitchenDashboard() {
         <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto">
                 <h1 className="text-3xl font-extrabold text-gray-900 mb-8 flex justify-between items-center">
-                    <span>Kitchen Dashboard 👨‍🍳</span>
+                    <span>Kitchen Dashboard 🍳</span>
                     <button onClick={fetchOrders} className="text-sm bg-gray-200 hover:bg-gray-300 text-gray-800 py-1 px-3 rounded-lg">
                         🔄 Refresh
                     </button>
