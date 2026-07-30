@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import {useState, useEffect} from 'react';
+import {BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer} from 'recharts';
 
 export default function AdminDashboard() {
     const [activeTab, setActiveTab] = useState("menu");
@@ -8,7 +8,14 @@ export default function AdminDashboard() {
     // Menu & Categories
     const [menuItems, setMenuItems] = useState([]);
     const [categories, setCategories] = useState([]);
-    const [newItem, setNewItem] = useState({ title: '', description: '', price: '', stock: '', category: '', isAvailable: true });
+    const [newItem, setNewItem] = useState({
+        title: '',
+        description: '',
+        price: '',
+        stock: '',
+        category: '',
+        isAvailable: true
+    });
     const [newCategoryName, setNewCategoryName] = useState('');
     const [imageFile, setImageFile] = useState(null);
 
@@ -17,12 +24,12 @@ export default function AdminDashboard() {
     const [roles, setRoles] = useState([]);
 
     // Analytics & Restaurant Status
-    const [analytics, setAnalytics] = useState({ totalOrders: 0, totalRevenue: 0, chartData: [] });
+    const [analytics, setAnalytics] = useState({totalOrders: 0, totalRevenue: 0, chartData: []});
     const [isForceOpen, setIsForceOpen] = useState(false);
 
     // Discounts
     const [discounts, setDiscounts] = useState([]);
-    const [newDiscount, setNewDiscount] = useState({ code: '', discountPercentage: '', maxUses: '', expiresAt: '' });
+    const [newDiscount, setNewDiscount] = useState({code: '', discountPercentage: '', maxUses: '', expiresAt: ''});
 
     // --- Fetch Functions ---
     const fetchCategories = async () => {
@@ -32,7 +39,7 @@ export default function AdminDashboard() {
                 const data = await res.json();
                 setCategories(data);
                 if (data.length > 0 && !newItem.category) {
-                    setNewItem(prev => ({ ...prev, category: data[0]._id }));
+                    setNewItem(prev => ({...prev, category: data[0]._id}));
                 }
             }
         } catch (error) {
@@ -56,7 +63,7 @@ export default function AdminDashboard() {
         try {
             const token = localStorage.getItem("token");
             const res = await fetch("http://127.0.0.1:5000/api/admin/users", {
-                headers: { "Authorization": `Bearer ${token}` }
+                headers: {"Authorization": `Bearer ${token}`}
             });
             if (res.ok) {
                 const data = await res.json();
@@ -71,7 +78,7 @@ export default function AdminDashboard() {
         try {
             const token = localStorage.getItem("token");
             const res = await fetch("http://127.0.0.1:5000/api/admin/roles", {
-                headers: { "Authorization": `Bearer ${token}` }
+                headers: {"Authorization": `Bearer ${token}`}
             });
             if (res.ok) {
                 const data = await res.json();
@@ -86,7 +93,7 @@ export default function AdminDashboard() {
         try {
             const token = localStorage.getItem("token");
             const res = await fetch("http://127.0.0.1:5000/api/admin/stats", {
-                headers: { "Authorization": `Bearer ${token}` }
+                headers: {"Authorization": `Bearer ${token}`}
             });
             if (res.ok) {
                 const data = await res.json();
@@ -101,7 +108,7 @@ export default function AdminDashboard() {
         try {
             const token = localStorage.getItem("token");
             const res = await fetch("http://127.0.0.1:5000/api/admin/status", {
-                headers: { "Authorization": `Bearer ${token}` }
+                headers: {"Authorization": `Bearer ${token}`}
             });
             if (res.ok) {
                 const data = await res.json();
@@ -116,7 +123,7 @@ export default function AdminDashboard() {
         try {
             const token = localStorage.getItem("token");
             const res = await fetch("http://127.0.0.1:5000/api/discounts", {
-                headers: { "Authorization": `Bearer ${token}` }
+                headers: {"Authorization": `Bearer ${token}`}
             });
             if (res.ok) {
                 const data = await res.json();
@@ -147,7 +154,7 @@ export default function AdminDashboard() {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${token}`
                 },
-                body: JSON.stringify({ isForceOpen: !isForceOpen })
+                body: JSON.stringify({isForceOpen: !isForceOpen})
             });
             if (res.ok) {
                 const data = await res.json();
@@ -158,6 +165,30 @@ export default function AdminDashboard() {
         }
     };
 
+    const handleToggleAvailability = async (id, currentStatus) => {
+        try {
+            const isCurrentlyActive = currentStatus !== false;
+            const newStatus = !isCurrentlyActive;
+
+            const token = localStorage.getItem("token");
+            const res = await fetch(`http://127.0.0.1:5000/api/menu/menu-items/${id}`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({ isAvailable: newStatus })
+            });
+
+            if (res.ok) {
+                await fetchMenuItems();
+            } else {
+                alert("Failed to update availability status");
+            }
+        } catch (error) {
+            console.error("Error updating availability:", error);
+        }
+    };
     const handleCreateDiscount = async (e) => {
         e.preventDefault();
         try {
@@ -183,7 +214,7 @@ export default function AdminDashboard() {
 
             if (res.ok) {
                 alert("Discount code created! 🎉");
-                setNewDiscount({ code: '', discountPercentage: '', maxUses: '', expiresAt: '' });
+                setNewDiscount({code: '', discountPercentage: '', maxUses: '', expiresAt: ''});
                 fetchDiscounts();
             } else {
                 const err = await res.json();
@@ -203,7 +234,7 @@ export default function AdminDashboard() {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${token}`
                 },
-                body: JSON.stringify({ roleId: newRoleId })
+                body: JSON.stringify({roleId: newRoleId})
             });
 
             if (res.ok) fetchUsers();
@@ -222,7 +253,7 @@ export default function AdminDashboard() {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${token}`
                 },
-                body: JSON.stringify({ name: newCategoryName })
+                body: JSON.stringify({name: newCategoryName})
             });
             if (res.ok) {
                 setNewCategoryName('');
@@ -232,9 +263,34 @@ export default function AdminDashboard() {
             console.error("Error adding category:", error);
         }
     };
+    const handleUpdateStock = async (id, currentStock, change) => {
+        const newStock = currentStock + change;
+        if (newStock < 0) return;
 
+        try {
+            const token = localStorage.getItem("token");
+            const res = await fetch(`http://127.0.0.1:5000/api/menu/menu-items/${id}/availability`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({stock: newStock})
+            });
+
+            if (res.ok) {
+                fetchMenuItems();
+            } else {
+                const err = await res.json();
+                alert(err.message || "Failed to update stock");
+            }
+        } catch (error) {
+            console.error("Error updating stock:", error);
+            alert("Network error updating stock");
+        }
+    };
     const handleInputChange = (e) => {
-        const { name, value, type, checked } = e.target;
+        const {name, value, type, checked} = e.target;
         setNewItem(prev => ({
             ...prev,
             [name]: type === 'checkbox' ? checked : value
@@ -256,17 +312,24 @@ export default function AdminDashboard() {
             formData.append('price', newItem.price);
             formData.append('stock', newItem.stock || 0);
             formData.append('category', selectedCategory);
-            formData.append('isAvailable', newItem.isAvailable);
+            formData.append('isAvailable', newItem.isAvailable === true ? 'true' : 'false');
             if (imageFile) formData.append('image', imageFile);
 
             const res = await fetch("http://127.0.0.1:5000/api/menu/menu-items", {
                 method: "POST",
-                headers: { "Authorization": `Bearer ${token}` },
+                headers: {"Authorization": `Bearer ${token}`},
                 body: formData
             });
 
             if (res.ok) {
-                setNewItem({ title: '', description: '', price: '', stock: '', category: categories.length > 0 ? categories[0]._id : '', isAvailable: true });
+                setNewItem({
+                    title: '',
+                    description: '',
+                    price: '',
+                    stock: '',
+                    category: categories.length > 0 ? categories[0]._id : '',
+                    isAvailable: true
+                });
                 setImageFile(null);
                 fetchMenuItems();
                 alert("Menu item added successfully! 🎉");
@@ -282,12 +345,12 @@ export default function AdminDashboard() {
     };
 
     const handleDeleteItem = async (id) => {
-        if(!window.confirm("Are you sure you want to delete this item?")) return;
+        if (!window.confirm("Are you sure you want to delete this item?")) return;
         try {
             const token = localStorage.getItem("token");
             const res = await fetch(`http://127.0.0.1:5000/api/menu/menu-items/${id}`, {
                 method: "DELETE",
-                headers: { "Authorization": `Bearer ${token}` }
+                headers: {"Authorization": `Bearer ${token}`}
             });
             if (res.ok) fetchMenuItems();
         } catch (error) {
@@ -354,7 +417,7 @@ export default function AdminDashboard() {
                                         type="text"
                                         placeholder="Discount Code (e.g. FOOD20)"
                                         value={newDiscount.code}
-                                        onChange={(e) => setNewDiscount({ ...newDiscount, code: e.target.value })}
+                                        onChange={(e) => setNewDiscount({...newDiscount, code: e.target.value})}
                                         className="border p-2 rounded uppercase font-mono"
                                         required
                                     />
@@ -362,7 +425,10 @@ export default function AdminDashboard() {
                                         type="number"
                                         placeholder="Discount Percent (e.g. 20)"
                                         value={newDiscount.discountPercentage}
-                                        onChange={(e) => setNewDiscount({ ...newDiscount, discountPercentage: e.target.value })}
+                                        onChange={(e) => setNewDiscount({
+                                            ...newDiscount,
+                                            discountPercentage: e.target.value
+                                        })}
                                         min="1"
                                         max="100"
                                         className="border p-2 rounded"
@@ -374,7 +440,7 @@ export default function AdminDashboard() {
                                         type="number"
                                         placeholder="Max Usage Limit (e.g. 50)"
                                         value={newDiscount.maxUses}
-                                        onChange={(e) => setNewDiscount({ ...newDiscount, maxUses: e.target.value })}
+                                        onChange={(e) => setNewDiscount({...newDiscount, maxUses: e.target.value})}
                                         min="1"
                                         className="border p-2 rounded"
                                         required
@@ -382,12 +448,13 @@ export default function AdminDashboard() {
                                     <input
                                         type="date"
                                         value={newDiscount.expiresAt}
-                                        onChange={(e) => setNewDiscount({ ...newDiscount, expiresAt: e.target.value })}
+                                        onChange={(e) => setNewDiscount({...newDiscount, expiresAt: e.target.value})}
                                         className="border p-2 rounded"
                                         required
                                     />
                                 </div>
-                                <button type="submit" className="w-full bg-green-600 text-white font-bold py-2.5 rounded-lg hover:bg-green-700">
+                                <button type="submit"
+                                        className="w-full bg-green-600 text-white font-bold py-2.5 rounded-lg hover:bg-green-700">
                                     Create Discount Code
                                 </button>
                             </form>
@@ -404,8 +471,12 @@ export default function AdminDashboard() {
                                         <tr>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Code</th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Percent</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Used / Max</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Expires At</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Used
+                                                / Max
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Expires
+                                                At
+                                            </th>
                                         </tr>
                                         </thead>
                                         <tbody className="divide-y divide-gray-200">
@@ -444,11 +515,11 @@ export default function AdminDashboard() {
                             <div className="h-72 w-full">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart data={analytics.chartData || []}>
-                                        <CartesianGrid strokeDasharray="3 3" />
-                                        <XAxis dataKey="date" />
-                                        <YAxis />
-                                        <Tooltip />
-                                        <Bar dataKey="revenue" fill="#3b82f6" />
+                                        <CartesianGrid strokeDasharray="3 3"/>
+                                        <XAxis dataKey="date"/>
+                                        <YAxis/>
+                                        <Tooltip/>
+                                        <Bar dataKey="revenue" fill="#3b82f6"/>
                                     </BarChart>
                                 </ResponsiveContainer>
                             </div>
@@ -514,13 +585,15 @@ export default function AdminDashboard() {
                                     className="flex-grow border p-2 rounded"
                                     required
                                 />
-                                <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded font-bold hover:bg-green-700">
+                                <button type="submit"
+                                        className="bg-green-600 text-white px-4 py-2 rounded font-bold hover:bg-green-700">
                                     Add Category
                                 </button>
                             </form>
                             <div className="flex flex-wrap gap-2">
                                 {categories.map(cat => (
-                                    <span key={cat._id} className="bg-gray-100 px-3 py-1 rounded-full text-sm font-semibold text-gray-700">
+                                    <span key={cat._id}
+                                          className="bg-gray-100 px-3 py-1 rounded-full text-sm font-semibold text-gray-700">
                                         {cat.name}
                                     </span>
                                 ))}
@@ -628,6 +701,7 @@ export default function AdminDashboard() {
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stock</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                                     </tr>
                                     </thead>
@@ -636,21 +710,52 @@ export default function AdminDashboard() {
                                         <tr key={item._id}>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 {item.imageUrl ? (
-                                                    <img src={`http://127.0.0.1:5000${item.imageUrl}`} alt={item.title} className="w-12 h-12 object-cover rounded" />
+                                                    <img src={`http://127.0.0.1:5000${item.imageUrl}`} alt={item.name}
+                                                         className="w-12 h-12 object-cover rounded"/>
                                                 ) : (
-                                                    <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-500">No Img</div>
+                                                    <div
+                                                        className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-500">No
+                                                        Img</div>
                                                 )}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.title}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.name}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.category?.name || 'Uncategorized'}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-bold">${item.price?.toFixed(2)}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    <span className={`px-2 py-1 rounded-full text-xs font-bold ${item.stock > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        onClick={() => handleUpdateStock(item._id, item.stock, -1)}
+                                                        className="bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded font-bold text-gray-700 transition-colors"
+                                                    >
+                                                        -
+                                                    </button>
+                                                    <span
+                                                        className={`px-3 py-1 rounded-full text-xs font-bold ${item.stock > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                                                         {item.stock}
                                                     </span>
+                                                    <button
+                                                        onClick={() => handleUpdateStock(item._id, item.stock, 1)}
+                                                        className="bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded font-bold text-gray-700 transition-colors"
+                                                    >
+                                                        +
+                                                    </button>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <button
+                                                    onClick={() => handleToggleAvailability(item._id, item.isAvailable !== false)}
+                                                    className={`px-3 py-1 rounded-full text-xs font-bold transition-colors shadow-sm cursor-pointer ${
+                                                        item.isAvailable !== false
+                                                            ? 'bg-blue-100 text-blue-800 border border-blue-200 hover:bg-blue-200'
+                                                            : 'bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200'
+                                                    }`}
+                                                >
+                                                    {item.isAvailable !== false ? 'Available ✅' : 'Unavailable ❌'}
+                                                </button>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                <button onClick={() => handleDeleteItem(item._id)} className="text-red-600 hover:text-red-900 font-bold">
+                                                <button onClick={() => handleDeleteItem(item._id)}
+                                                        className="text-red-600 hover:text-red-900 font-bold">
                                                     Delete
                                                 </button>
                                             </td>
