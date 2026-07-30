@@ -170,7 +170,7 @@ const deleteCategory = async (req, res) => {
  */
 const createMenuItem = async (req, res) => {
   try {
-    const { name, description, price, stock, image, category } = req.body || {};
+    const { name, description, price, stock, image, category, isAvailable } = req.body || {};
 
     // Handle physical file upload if present, otherwise fallback to URL string from body
     let finalImage = image || '';
@@ -185,13 +185,21 @@ const createMenuItem = async (req, res) => {
     const categoryExists = await Category.findById(category);
     if (!categoryExists) return res.status(404).json({ message: 'Specified category does not exist' });
 
+
+    let finalIsAvailable = true;
+    if (isAvailable !== undefined) {
+      finalIsAvailable = isAvailable === 'true' || isAvailable === true;
+    }
+
+
     const menuItem = await MenuItem.create({
       name,
       description,
       price,
       stock: stock || 0,
       image: finalImage,
-      category
+      category,
+      isAvailable: finalIsAvailable
     });
 
     res.status(201).json(menuItem);
@@ -209,8 +217,8 @@ const createMenuItem = async (req, res) => {
  */
 const updateMenuItem = async (req, res) => {
   try {
-    const { name, description, price, image, category } = req.body || {};
-    
+    const { name, description, price, image, category, isAvailable } = req.body || {};
+
     const menuItem = await MenuItem.findById(req.params.id);
     if (!menuItem) return res.status(404).json({ message: 'Menu item not found' });
 
@@ -223,8 +231,8 @@ const updateMenuItem = async (req, res) => {
     if (name) menuItem.name = name;
     if (description !== undefined) menuItem.description = description;
     if (price !== undefined) menuItem.price = price;
-    
-    // Handle image update (physical file priority over string URL)
+    if (isAvailable !== undefined) menuItem.isAvailable = isAvailable;
+
     if (req.file) {
       menuItem.image = `/uploads/${req.file.filename}`;
     } else if (image !== undefined) {
