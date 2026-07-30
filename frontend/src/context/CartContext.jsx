@@ -10,6 +10,11 @@ export const CartProvider = ({ children }) => {
     const [cartItems, setCartItems] = useState([]);
 
     const addToCart = (food) => {
+        if (food.isAvailable === false) {
+            alert("Sorry, this item is currently unavailable. ❌");
+            return;
+        }
+
         setCartItems((prevItems) => {
             const existingItem = prevItems.find((item) => item._id === food._id);
             const currentQuantity = existingItem ? existingItem.quantity : 0;
