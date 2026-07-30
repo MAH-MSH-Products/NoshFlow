@@ -8,7 +8,7 @@ export default function FoodCard({food, onAddToCart}) {
             className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow">
             {food.image ? (
                 <img
-                    src={`http://127.0.0.1:5000/${food.image}`}
+                    src={`http://127.0.0.1:5000${food.image}`}
                     alt={food.name}
                     className="w-full h-48 object-cover"
                 />
