@@ -80,57 +80,57 @@ When using AI to help develop a specific feature, follow this strict sequence to
 
 ### Phase 1: Infrastructure & Setup
 * [ ] **Frontend (HajiAlirezaei):** Initialize the frontend framework (React/Vue) and setup styling tools/folder structure.
-    * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
+    * *Status:* ✅ Done
     * *Handoff Message:* "Frontend infrastructure is ready."
 * [ ] **Backend (HamidiFard):** Setup Node.js, Express.js, and connect to the MongoDB database.
-    * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
+    * *Status:* ✅ Done
     * *Handoff Message:* "Server is up and connected to the database."
 
 ### Phase 2: Database & Authentication
 * [ ] **Backend (HamidiFard):** Design Collections (`Users`, `Roles`), implement Registration/Login routes, generate JWT, apply `bcrypt` password hashing, and setup RBAC middleware.
-    * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
+    * *Status:* ✅ Done
     * *Handoff Message:* "Auth APIs are ready. JWT is being generated."
 * [ ] **Frontend (HajiAlirezaei):** Design Login/Register forms, implement frontend validation, store JWT securely in the browser, and attach it to API request headers.
-    * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
+    * *Status:* ✅ Done
     * *Handoff Message:* "Auth forms are connected to the API and JWT is stored."
 
 ### Phase 3: Menu & Cart Logic
 * [ ] **Backend (HamidiFard):** Design `MenuItems` and `Categories` collections. Write APIs to fetch the menu list. **Crucial:** Implement server-side price calculation and validation (do not trust client-side prices).
-    * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
+    * *Status:* ✅ Done
     * *Handoff Message:* "Menu APIs are ready and price validation is strict on the server."
 * [ ] **Frontend (HajiAlirezaei):** Design menu cards UI (name, description, price, add button). Implement cart state management in the browser and DOM events for adding/removing items.
-    * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
+    * *Status:* ✅ Done
     * *Handoff Message:* "Menu UI is displaying data and Cart logic works."
 
 ### Phase 4: Order Management (Customer)
 * [ ] **Backend (HamidiFard):** Write the final order submission API. Set the initial order status to "Registered" (`ثبت‌‌شده`) and design the `Orders` collection.
-    * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
+    * *Status:* ✅ Done
     * *Handoff Message:* "Order submission API is live."
 * [ ] **Frontend (HajiAlirezaei):** Design the order tracking page for the customer, utilizing colored labels to differentiate order statuses.
-    * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
+    * *Status:* ✅ Done
     * *Handoff Message:* "Customer order tracking UI is connected."
 
 ### Phase 5: Staff Dashboards (Kitchen & Cashier)
 * [ ] **Backend (HamidiFard):** Write APIs to update order statuses sequentially (Preparing -> Ready for Delivery -> Delivered). Ensure Role-Based Access Control so only specific staff can trigger these updates.
-    * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
+    * *Status:* ✅ Done
     * *Handoff Message:* "Status update APIs are ready for staff."
 * [ ] **Frontend (HajiAlirezaei):** Design separate, distinct panels for Kitchen staff (to view the queue) and the Cashier (for final delivery). Add status update buttons connected to the API.
-    * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
+    * *Status:* ✅ Done
     * *Handoff Message:* "Staff dashboards are ready and buttons change order statuses."
 
 ### Phase 6: Admin Panel & Reports
 * [ ] **Backend (HamidiFard):** Write APIs for managing user roles, fetching daily sales statistics, and generating data for charts.
-    * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
+    * *Status:* ✅ Done
     * *Handoff Message:* "Admin and Reporting APIs are providing data."
 * [ ] **Frontend (HajiAlirezaei):** Design the Admin panel to manage the menu. Implement graphical charts to display daily sales and reports visually.
-    * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
+    * *Status:* ✅ Done
     * *Handoff Message:* "Admin UI and charts are successfully rendering data."
 
 ### Phase 7: Security & Bonus Features
 * [ ] **Backend (HamidiFard):** Implement NoSQL Injection prevention. Add bonus logic: automatically reduce item stock upon order, and create an `audit_logs` collection to track exact order status history.
-    * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
+    * *Status:* ✅ Done
 * [ ] **Frontend (HajiAlirezaei):** Implement bonus logic: Search and filter functionality for menu items, display approximate prep time, and visually disable "Add to cart" buttons for out-of-stock items.
-    * *Status:* ⬜ Pending | ⏳ In Progress | ✅ Done
+    * *Status:* ✅ Done
 
 ## 5. Project Dependencies & Blockers
 
@@ -190,3 +190,10 @@ NoshFlow/
 ├── README.md # Documentation for introducing and implementing the project for the teacher
 └── TODO.md
 ```
+## 7. PENDING Guide (Blocked Tasks & Waiting List)
+To manage cross-dependencies and prevent the development process from being blocked, we use the `PENDING.md` file. The rules for utilizing this file are as follows:
+
+* **Purpose:** To transparently and accurately track tasks that you need your teammate to complete so you can finish a phase (e.g., Frontend waiting for an API, or Backend waiting for an agreed JSON structure).
+* **When to use (Crucial):** You are **only allowed** to add an item to the `PENDING.md` file if you have already started and fully implemented your independent portion of that phase (e.g., Frontend has built the forms with Mock Data, or Backend has written the core controllers).
+* **When NOT to use:** If you have not yet started your own tasks for a phase, you must not write anything in this file. You cannot be "waiting" on a teammate if your own foundational code for that phase hasn't been written! Progress as far as possible independently first, and only log an item here when you are genuinely blocked.
+* **Resolution:** Once the requested task is completed and pushed by the other developer, the person who resolved the blocker is responsible for striking through or deleting the corresponding item from `PENDING.md`.

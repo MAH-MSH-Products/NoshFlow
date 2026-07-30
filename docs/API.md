@@ -1,0 +1,338 @@
+# FoodOps API Documentation
+
+Base URL: `http://localhost:5000`
+
+---
+
+## 1. Authentication APIs
+
+### Register a User
+- **URL**: `/api/auth/register`
+- **Method**: `POST`
+- **Access**: Public
+- **Content-Type**: `application/json`
+- **Body Payload**:
+  ```json
+  {
+    "name": "John Doe",
+    "email": "john@example.com",
+    "password": "securepassword",
+    "roleName": "Customer" // Optional. Defaults to 'Customer'. Other options: 'Kitchen Staff', 'Cashier', 'Admin'
+  }
+  ```
+- **Success Response (201 Created)**: Returns the user object and a `token` (JWT).
+
+### Login
+- **URL**: `/api/auth/login`
+- **Method**: `POST`
+- **Access**: Public
+- **Content-Type**: `application/json`
+- **Body Payload**:
+  ```json
+  {
+    "email": "john@example.com",
+    "password": "securepassword"
+  }
+  ```
+- **Success Response (200 OK)**: Returns the user object and a `token` (JWT).
+
+### Get Current User Profile
+- **URL**: `/api/auth/me`
+- **Method**: `GET`
+- **Access**: Private (Requires JWT)
+- **Headers**: `Authorization: Bearer <token>`
+- **Success Response (200 OK)**: Returns the currently authenticated user's details.
+
+### Logout
+- **URL**: `/api/auth/logout`
+- **Method**: `POST`
+- **Access**: Public
+- **Success Response (200 OK)**: Acknowledges logout (client must destroy the token locally).
+
+---
+
+## 2. Public Menu APIs
+
+### Get All Categories
+- **URL**: `/api/categories`
+- **Method**: `GET`
+- **Access**: Public
+- **Success Response (200 OK)**: Returns an array of category objects.
+
+### Get All Menu Items (With Filtering/Searching)
+- **URL**: `/api/menu-items`
+- **Method**: `GET`
+- **Access**: Public
+- **Query Parameters (Optional)**:
+  - `search` (String): Case-insensitive search on item name and description.
+  - `category` (ObjectId): Filter items by a specific Category ID.
+  - `minPrice` (Number): Filter items greater than or equal to this price.
+  - `maxPrice` (Number): Filter items less than or equal to this price.
+  - `inStock` (Boolean): If `true`, only returns items where stock > 0.
+- **Example**: `/api/menu-items?search=burger&minPrice=10&inStock=true`
+- **Success Response (200 OK)**: Returns an array of populated menu items.
+
+### Get Single Menu Item
+- **URL**: `/api/menu-items/:id`
+- **Method**: `GET`
+- **Access**: Public
+- **Success Response (200 OK)**: Returns the requested menu item object.
+
+---
+
+## 3. Customer Order APIs
+*All routes below require `Authorization: Bearer <token>` header and the authenticated user must have the `Customer` role.*
+
+### Submit a New Order
+- **URL**: `/api/orders`
+- **Method**: `POST`
+- **Content-Type**: `application/json`
+- **Body Payload**:
+  ```json
+  {
+    "items": [
+      { "menuItem": "64abcdef1234567890abcdef", "quantity": 2 }
+    ],
+    "discountCode": "SUMMER20" // Optional
+  }
+  ```
+- **Success Response (201 Created)**: Returns the complete order with total price, status, and actively decrements inventory stock. (Blocked if outside working hours).
+
+### Get My Orders
+- **URL**: `/api/orders/me`
+- **Method**: `GET`
+- **Success Response (200 OK)**: Returns an array of the user's orders (newest first).
+
+### Get Specific Order
+- **URL**: `/api/orders/:id`
+- **Method**: `GET`
+- **Success Response (200 OK)**: Returns the requested order.
+
+### Cancel Order
+- **URL**: `/api/orders/:id/cancel`
+- **Method**: `PATCH`
+- **Business Rule**: Can only be cancelled if the status is still "Registered".
+
+---
+
+## 4. Customer Discount APIs
+
+### Validate & Calculate Discount
+- **URL**: `/api/discounts/validate`
+- **Method**: `POST`
+- **Access**: Private (Requires JWT, Role: Customer)
+- **Content-Type**: `application/json`
+- **Body Payload**:
+  ```json
+  {
+    "code": "SUMMER20",
+    "items": [
+      { "menuItem": "64abcdef1234567890abcdef", "quantity": 2 }
+    ]
+  }
+  ```
+  *(Note: `items` is optional. If omitted, the API returns the percentage but won't calculate totals)*
+- **Success Response (200 OK)**:
+  ```json
+  {
+    "valid": true,
+    "code": "SUMMER20",
+    "discountPercentage": 20,
+    "originalTotal": 25.98,
+    "discountedTotal": 20.78
+  }
+  ```
+- **Error Responses (400 Bad Request)**: Returns specific errors if the code is invalid, expired, reached max uses, or if the items provided are out of stock.
+
+---
+
+## 5. Admin Category APIs
+*All routes below require `Authorization: Bearer <token>` header and the authenticated user must have the `Admin` role.*
+
+### Create Category
+- **URL**: `/api/categories`
+- **Method**: `POST`
+- **Content-Type**: `application/json`
+- **Body Payload**:
+  ```json
+  {
+    "name": "Burgers",
+    "description": "Delicious flame-grilled burgers"
+  }
+  ```
+
+### Update Category
+- **URL**: `/api/categories/:id`
+- **Method**: `PATCH`
+- **Content-Type**: `application/json`
+- **Body Payload**: (Any fields to update)
+
+### Delete Category
+- **URL**: `/api/categories/:id`
+- **Method**: `DELETE`
+- **Note**: Will fail (400 Bad Request) if any menu items are still assigned to this category.
+
+---
+
+## 6. Admin Menu Item APIs
+*All routes below require `Authorization: Bearer <token>` header and the authenticated user must have the `Admin` role.*
+
+### Create Menu Item (Supports Image Upload)
+- **URL**: `/api/menu-items`
+- **Method**: `POST`
+- **Content-Type**: `multipart/form-data` (if uploading image file) or `application/json`
+- **Body Payload**:
+  - `name` (String, required)
+  - `price` (Number, required)
+  - `category` (ObjectId, required)
+  - `stock` (Number, optional, defaults to 0)
+  - `description` (String, optional)
+  - `image` (File upload OR String URL)
+
+### Update Menu Item
+- **URL**: `/api/menu-items/:id`
+- **Method**: `PATCH`
+- **Content-Type**: `multipart/form-data` (if updating image file) or `application/json`
+- **Body Payload**: (Any fields to update, including `image` file)
+
+### Update Menu Item Stock (Quick Action)
+- **URL**: `/api/menu-items/:id/availability`
+- **Method**: `PATCH`
+- **Content-Type**: `application/json`
+- **Body Payload**:
+  ```json
+  {
+    "stock": 25
+  }
+  ```
+
+### Delete Menu Item
+- **URL**: `/api/menu-items/:id`
+- **Method**: `DELETE`
+
+---
+
+## 7. Admin Discount APIs
+*All routes below require `Authorization: Bearer <token>` header and the authenticated user must have the `Admin` role.*
+
+### Create Discount Code
+- **URL**: `/api/discounts`
+- **Method**: `POST`
+- **Content-Type**: `application/json`
+- **Body Payload**:
+  ```json
+  {
+    "code": "SUMMER20",
+    "discountPercentage": 20,
+    "maxUses": 100,
+    "expiresAt": "2026-12-31T23:59:59.000Z"
+  }
+  ```
+
+### Get All Discounts
+- **URL**: `/api/discounts`
+- **Method**: `GET`
+- **Success Response (200 OK)**: Returns an array of all discount codes.
+
+### Update Discount Code
+- **URL**: `/api/discounts/:id`
+- **Method**: `PATCH`
+- **Content-Type**: `application/json`
+- **Body Payload**: (Any fields to update)
+
+### Delete Discount Code
+- **URL**: `/api/discounts/:id`
+- **Method**: `DELETE`
+
+---
+
+## 8. Kitchen Staff APIs
+*All routes below require `Authorization: Bearer <token>` header and the authenticated user must have the `Kitchen Staff` or `Admin` role.*
+
+### Get Kitchen Orders
+- **URL**: `/api/kitchen/orders`
+- **Method**: `GET`
+- **Success Response (200 OK)**: Returns an array of orders with status "Registered" or "Preparing", sorted by oldest first.
+
+### Start Preparing Order
+- **URL**: `/api/orders/:id/start`
+- **Method**: `PATCH`
+- **Business Rule**: Changes status from "Registered" to "Preparing". Automatically calculates and assigns an `estimatedPrepTime`. Also inserts an Audit Log.
+
+### Mark Order Ready for Delivery
+- **URL**: `/api/orders/:id/ready`
+- **Method**: `PATCH`
+- **Business Rule**: Changes status from "Preparing" to "Ready for Delivery". Also inserts an Audit Log.
+
+---
+
+## 9. Delivery/Cashier APIs
+*All routes below require `Authorization: Bearer <token>` header and the authenticated user must have the `Cashier` or `Admin` role.*
+
+### Get Delivery Orders
+- **URL**: `/api/delivery/orders`
+- **Method**: `GET`
+- **Success Response (200 OK)**: Returns an array of orders with status "Ready for Delivery", sorted by oldest first.
+
+### Mark Order Delivered
+- **URL**: `/api/orders/:id/deliver`
+- **Method**: `PATCH`
+- **Business Rule**: Changes status from "Ready for Delivery" to "Delivered". Also inserts an Audit Log.
+
+---
+
+## 10. Admin Dashboard & Analytics APIs
+*All routes below require `Authorization: Bearer <token>` header and the authenticated user must have the `Admin` role.*
+
+### Get All Users
+- **URL**: `/api/admin/users`
+- **Method**: `GET`
+- **Query Parameters (Optional)**:
+  - `page` / `limit`: Pagination parameters.
+- **Success Response (200 OK)**: Returns a paginated array of users (passwords excluded) with populated roles.
+
+### Update User Role
+- **URL**: `/api/admin/users/:id/role`
+- **Method**: `PATCH`
+- **Content-Type**: `application/json`
+- **Body Payload**:
+  ```json
+  {
+    "roleId": "64abcdef1234567890abcdef"
+  }
+  ```
+
+### Get All Roles
+- **URL**: `/api/admin/roles`
+- **Method**: `GET`
+- **Success Response (200 OK)**: Returns an array of all available system roles, sorted alphabetically.
+
+### Get All Orders (Master View)
+- **URL**: `/api/admin/orders`
+- **Method**: `GET`
+- **Query Parameters (Optional)**:
+  - `page` / `limit`: Pagination parameters.
+  - `status` (String): Filter orders by specific status (e.g., `Delivered`).
+  - `userId` (ObjectId): Filter orders placed by a specific user.
+  - `startDate` / `endDate` (ISO Date Strings): Filter orders by creation date range.
+- **Example**: `/api/admin/orders?status=Preparing&userId=64abc&startDate=2026-07-01`
+- **Success Response (200 OK)**: Returns a paginated list of all orders in the system, fully populated.
+
+### Get Order Status Audit Logs
+- **URL**: `/api/admin/logs`
+- **Method**: `GET`
+- **Query Parameters (Optional)**:
+  - `page` / `limit`: Pagination parameters.
+  - `orderId` (ObjectId): Filter audit history for a specific order.
+  - `startDate` / `endDate` (ISO Date Strings): Filter logs by when the change happened.
+- **Success Response (200 OK)**: Returns paginated `OrderLog` records tracking status changes.
+
+### Get Daily Sales Report (Analytics)
+- **URL**: `/api/admin/reports/daily`
+- **Method**: `GET`
+- **Success Response (200 OK)**: Returns aggregated array of objects grouped by date (`YYYY-MM-DD`), featuring `totalRevenue` and `orderCount`. Automatically excludes cancelled orders.
+
+### Get Popular Menu Items (Analytics)
+- **URL**: `/api/admin/reports/items`
+- **Method**: `GET`
+- **Success Response (200 OK)**: Returns the top 10 best-selling items, dynamically aggregating total quantity sold using a MongoDB pipeline.
