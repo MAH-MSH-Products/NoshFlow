@@ -46,8 +46,44 @@ const getAllRoles = async (req, res) => {
 
 const getAllOrders = async (req, res) => {
   try {
-    const orders = await Order.find().populate('customer', 'name email').sort({ createdAt: -1 });
-    res.status(200).json(orders);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
+
+    const { status, startDate, endDate, userId } = req.query;
+    let query = {};
+
+    if (status) query.status = status;
+    if (userId) query.customer = userId;
+
+    if (startDate || endDate) {
+      query.createdAt = {};
+      if (startDate) query.createdAt.$gte = new Date(startDate);
+      if (endDate) query.createdAt.$lte = new Date(endDate);
+    }
+
+    const orders = await Order.find(query)
+      .populate('customer', 'name email')
+      .populate('items.menuItem', 'name price')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const totalOrders = await Order.countDocuments(query);
+
+    // Map 'customer' to 'user' for frontend compatibility
+    const formattedOrders = orders.map(order => {
+      const orderObj = order.toObject();
+      orderObj.user = orderObj.customer;
+      return orderObj;
+    });
+
+    res.status(200).json({
+      orders: formattedOrders,
+      currentPage: page,
+      totalPages: Math.ceil(totalOrders / limit) || 1,
+      totalOrders
+    });
   } catch (error) {
     console.error('Error fetching all orders:', error.message);
     res.status(500).json({ message: 'Server error while fetching orders' });
