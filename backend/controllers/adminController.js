@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const User = require('../models/User');
 const Role = require('../models/Role');
 const Order = require('../models/Order');
@@ -54,7 +55,16 @@ const getAllOrders = async (req, res) => {
     let query = {};
 
     if (status) query.status = status;
-    if (userId) query.customer = userId;
+    if (userId) {
+      const trimmedId = userId.trim();
+      query.$expr = {
+        $regexMatch: {
+          input: { $toString: "$customer" },
+          regex: trimmedId,
+          options: "i"
+        }
+      };
+    }
 
     if (startDate || endDate) {
       query.createdAt = {};
@@ -148,7 +158,17 @@ const getOrderLogs = async (req, res) => {
     const { orderId, startDate, endDate } = req.query;
     let query = {};
 
-    if (orderId) query.order_id = orderId;
+    if (orderId) {
+      const trimmedId = orderId.trim();
+      query.$expr = {
+        $regexMatch: {
+          input: { $toString: "$order_id" },
+          regex: trimmedId,
+          options: "i"
+        }
+      };
+    }
+    
     if (startDate || endDate) {
       query.changed_at = {};
       if (startDate) query.changed_at.$gte = new Date(startDate);
