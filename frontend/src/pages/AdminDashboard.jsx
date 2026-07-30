@@ -216,7 +216,11 @@ export default function AdminDashboard() {
             const params = new URLSearchParams();
             if (logsFilters.page) params.append('page', logsFilters.page);
             if (logsFilters.limit) params.append('limit', logsFilters.limit);
-            if (logsFilters.orderId) params.append('orderId', logsFilters.orderId);
+            if (logsFilters.orderId) {
+                params.append('orderId', logsFilters.orderId);
+                // Also append order_id in case the backend uses this exact naming convention
+                params.append('order_id', logsFilters.orderId);
+            }
             if (logsFilters.startDate) params.append('startDate', logsFilters.startDate);
             if (logsFilters.endDate) params.append('endDate', logsFilters.endDate);
 
@@ -842,13 +846,13 @@ export default function AdminDashboard() {
                                                     {new Date(order.createdAt).toLocaleString()}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    {order.user?.name || order.user || "Unknown"}
+                                                    {order.user?.name ? `${order.user.name} (${order.user._id || ''})` : (order.user?._id || order.user || "Unknown")}
                                                 </td>
                                                 <td className="px-6 py-4 text-sm text-gray-500">
                                                     <ul className="list-disc list-inside">
                                                         {order.items?.map((item, idx) => (
                                                             <li key={idx} className="truncate max-w-[200px]">
-                                                                {item.quantity}x {item.name || item.title || item.menuItem?.name || item.menuItem?.title || "Food Item"}
+                                                                {item.quantity}x {item.menuItem?.name || item.menuItem?.title || item.name || item.title || (typeof item.menuItem === 'string' ? item.menuItem : "Food Item")}
                                                             </li>
                                                         ))}
                                                     </ul>
