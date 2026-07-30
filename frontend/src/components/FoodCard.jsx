@@ -1,52 +1,54 @@
 import React from 'react';
 
-export default function FoodCard({food, onAddToCart}) {
-    const isOutOfStock = food.stock === 0 || food.isAvailable === false;
+export default function FoodCard({ food, onAddToCart }) {
+    // ۱. استفاده از food.name (به همراه پشتیبانی رزرو از title جهت جلوگیری از خطای احتمالی)
+    const displayName = food?.name || food?.title || "بدون نام";
+
+    // ۲. مدیریت آدرس تصویر (چه آدرس کامل باشه چه مسیر نسبی uploads)
+    const imageUrl = food?.image
+        ? (food.image.startsWith('http') ? food.image : `http://127.0.0.1:5000${food.image}`)
+        : '/placeholder-food.png';
 
     return (
-        <div
-            className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow">
-            {food.image ? (
+        <div className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden flex flex-col justify-between">
+            {/* تصویر غذا */}
+            <div className="relative h-48 w-full bg-gray-100">
                 <img
-                    src={`http://127.0.0.1:5000${food.image}`}
-                    alt={food.name}
-                    className="w-full h-48 object-cover"
+                    src={imageUrl}
+                    alt={displayName}
+                    className="w-full h-full object-cover"
+                    onError={(e) => { e.target.src = 'https://via.placeholder.com/300x200?text=No+Image'; }}
                 />
-            ) : (
-                <div className="w-full h-48 bg-gray-100 flex items-center justify-center text-gray-400 font-bold">
-                    No Image 📷
+            </div>
+
+            <div className="p-5 flex flex-col flex-grow justify-between">
+                <div>
+                    {/* ۳. نمایش نام غذا با فیلد name */}
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">
+                        {displayName}
+                    </h3>
+
+                    <p className="text-gray-500 text-sm mb-4 line-clamp-2">
+                        {food?.description || "بدون توضیحات"}
+                    </p>
                 </div>
-            )}
 
-            <div className="p-5 flex flex-col flex-grow">
-                <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-lg font-extrabold text-gray-900">{food.title}</h3>
-                    <span className="text-indigo-600 font-bold text-base">${food.price}</span>
-                </div>
+                <div className="flex items-center justify-between pt-3 border-t border-gray-50">
+                    <span className="text-lg font-extrabold text-blue-600">
+                        ${food?.price}
+                    </span>
 
-                <p className="text-gray-600 text-sm mb-4 line-clamp-2 flex-grow">{food.description}</p>
-
-                <div className="mt-auto">
-                    {isOutOfStock ? (
-                        <button
-                            disabled
-                            className="w-full py-2 px-4 bg-gray-300 text-gray-600 font-bold rounded-xl cursor-not-allowed text-center"
-                        >
-                            ناموجود 🚫
-                        </button>
-                    ) : (
-                        <button
-                            onClick={() => onAddToCart(food)}
-                            disabled={food.stock <= 0}
-                            className={`px-4 py-2 text-white font-bold rounded-lg transition-colors 
-                                ${food.stock <= 0
-                                ? 'bg-gray-400 cursor-not-allowed' 
-                                : 'bg-blue-600 hover:bg-blue-700' 
-                            }`}
-                        >
-                            Add to Cart 🛒
-                        </button>
-                    )}
+                    <button
+                        onClick={() => onAddToCart(food)}
+                        disabled={food?.stock === 0}
+                        className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+                            food?.stock === 0
+                                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                                : "bg-blue-600 text-white hover:bg-blue-700 shadow-sm"
+                        }`}
+                    >
+                        {food?.stock === 0 ? "stock is 0" : "add to cart"}
+                    </button>
                 </div>
             </div>
         </div>
