@@ -46,7 +46,7 @@ const getAllRoles = async (req, res) => {
 
 const getAllOrders = async (req, res) => {
   try {
-    const orders = await Order.find().populate('user', 'name email').sort({ createdAt: -1 });
+    const orders = await Order.find().populate('customer', 'name email').sort({ createdAt: -1 });
     res.status(200).json(orders);
   } catch (error) {
     console.error('Error fetching all orders:', error.message);
