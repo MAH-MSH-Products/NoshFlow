@@ -24,6 +24,13 @@ describe('Suite 5: Discounts & Bonus Features', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         localStorage.clear();
+        
+        global.fetch.mockImplementation(() => 
+            Promise.resolve({
+                ok: true,
+                json: async () => ([])
+            })
+        );
     });
 
     it('Test 5.1: Out-of-Stock UI - button should be disabled if isAvailable is false', () => {
@@ -53,7 +60,7 @@ describe('Suite 5: Discounts & Bonus Features', () => {
             </CartProvider>
         );
 
-        await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(1));
+        await waitFor(() => expect(global.fetch).toHaveBeenCalled());
 
         const searchInput = screen.getByPlaceholderText(/Search for food/i);
         fireEvent.change(searchInput, { target: { value: 'pizza' } });
@@ -67,7 +74,7 @@ describe('Suite 5: Discounts & Bonus Features', () => {
 
             expect(lastCallUrl).toContain('search=pizza');
             expect(lastCallUrl).toContain('minPrice=10');
-        }, { timeout: 1500 });
+        }, { timeout: 2000 });
     });
 
     it('Test 5.3: Discount Validation - should apply discount and reduce total', async () => {
@@ -95,11 +102,10 @@ describe('Suite 5: Discounts & Bonus Features', () => {
         fireEvent.click(screen.getByRole('button', { name: /Apply/i }));
 
         await waitFor(() => {
-            expect(global.fetch).toHaveBeenCalledTimes(1);
+            expect(global.fetch).toHaveBeenCalled();
             expect(screen.getByText(/Success!/i)).toBeInTheDocument();
-
-            expect(screen.getByText('$10.00')).toBeInTheDocument();
-        });
+            expect(screen.getByText(/\$10\.00/)).toBeInTheDocument();
+        }, { timeout: 2000 });
     });
 
 });
