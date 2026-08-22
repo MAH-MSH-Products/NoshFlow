@@ -35,7 +35,7 @@ export default function FoodCard({ food, onAddToCart }) {
 
                 <div className="flex items-center justify-between pt-3 border-t border-gray-50">
                     <span className="text-lg font-extrabold text-blue-600">
-                        ${food?.price}
+                        ${Number(food?.price)?.toFixed(2)}
                     </span>
 
                     <button

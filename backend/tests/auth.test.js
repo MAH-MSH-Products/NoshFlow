@@ -20,7 +20,7 @@ describe('Suite 1: Authentication & Security APIs', () => {
 
         if (!isCI) {
             mmsOptions.binary = {
-                systemBinary: 'C:\\Program Files\\MongoDB\\Server\\8.0\\bin\\mongod.exe'
+                systemBinary: '/usr/bin/mongod'
             };
         }
 
