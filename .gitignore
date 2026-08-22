@@ -2,14 +2,64 @@
 # Dependencies
 node_modules/
 
-# Environment files
+# Build artifacts
+dist/
+build/
+*.js.map
+*.css.map
+
+# Environment
 .env
 .env.local
 *.env.*
 
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*.tmp
+
 # Logs
 *.log
 
-# Package lock files (already in repo but good to have in gitignore for consistency)
-package-lock.json
+# Coverage
+coverage/
+htmlcov/
+.coverage
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.DS_Store
+Thumbs.db
+
+# Testing
+.jest/
+.nyc_output/
+coverage/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 ```
