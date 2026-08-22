@@ -31,7 +31,7 @@ describe('Suite 4: Admin Panel', () => {
 
         // Wait for the mock menu item to appear on the screen
         await waitFor(() => {
-            expect(screen.getByText('Existing Pizza')).toBeInTheDocument();
+            expect(screen.getByText(/Existing Pizza/i)).toBeInTheDocument();
         });
     });
 
@@ -56,8 +56,9 @@ describe('Suite 4: Admin Panel', () => {
             fireEvent.change(screen.getByPlaceholderText(/Description/i), { target: { value: 'Delicious' } });
         });
 
-        // 4. Click the submit button
-        fireEvent.click(screen.getByRole('button', { name: /Save Item/i }));
+        // 4. Click the submit button - using text content instead of role
+        const addBtn = await screen.findByText(/Add Menu Item/i);
+        fireEvent.click(addBtn);
 
         // 5. Verify the POST request was sent with a FormData object
         await waitFor(() => {

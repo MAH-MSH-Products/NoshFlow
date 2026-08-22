@@ -52,11 +52,13 @@ export default function Cart() {
     const handleCheckout = async () => {
         const token = localStorage.getItem("token");
         if (!token) {
-            return alert("You are not logged in");
+            setMessage({ type: "error", text: "You are not logged in" });
+            return;
         }
 
         if (cartItems.length === 0) {
-            return alert("Your cart is empty");
+            setMessage({ type: "error", text: "Your cart is empty" });
+            return;
         }
 
         console.log("دیتای خام سبد خرید:", cartItems);
@@ -82,19 +84,21 @@ export default function Cart() {
             });
 
             if (res.ok) {
-                alert("your order saved successfully 🛍️");
+                setMessage({ type: "success", text: "Your order saved successfully 🛍️" });
 
                 if (typeof setCartItems === 'function') {
                     setCartItems([]);
                 }
 
-                window.location.href = "/my-orders";
+                setTimeout(() => {
+                    navigate("/my-orders");
+                }, 1000);
             } else {
                 const data = await res.json();
-                alert(`خطای بک‌اند در ثبت سفارش: ${data.message || "اطلاعات ارسالی نامعتبر است"}`);
+                setMessage({ type: "error", text: `Backend error: ${data.message || "Invalid data"}` });
             }
         } catch (err) {
-            alert("خطای شبکه: امکان اتصال به سرور وجود ندارد.");
+            setMessage({ type: "error", text: "Network error: Cannot connect to server" });
         }
     };
     if (cartItems.length === 0 && !message.text) {

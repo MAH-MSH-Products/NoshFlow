@@ -3,53 +3,25 @@
 node_modules/
 
 # Build artifacts
-backend/node_modules/
+dist/
+build/
+*.js.map
+*.css.map
+
+# Environment
+.env
+.env.local
+*.env.*
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*.tmp
 
 # Logs
 *.log
-
-# Environment variables
-.env
-.env.local
-.env.*
-
-# IDE
-.vscode/
-.idea/
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Temporary files
-*.tmp
-*.temp
-*.swp
-*.swo
-
-# Compressed files
-*.zip
-*.gz
-*.tar
-*.tgz
-*.bz2
-*.xz
-*.7z
-*.rar
-*.zst
-*.lz4
-*.lzh
-*.cab
-*.arj
-*.rpm
-*.deb
-*.Z
-*.lz
-*.lzo
-*.tar.gz
-*.tar.bz2
-*.tar.xz
-*.tar.zst
 
 # Coverage
 coverage/
@@ -68,48 +40,26 @@ venv/
 pip-log.txt
 pip-delete-this-directory.txt
 .tox/
-.coverage*
-.nosetests.xml
-.pytest_cache/
+.coverage
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.DS_Store
+Thumbs.db
 
-# Node.js
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-node_modules/
-jspm_packages/
-typings/
-.nyc_output
+# Testing
+.jest/
+.nyc_output/
 coverage/
-*.lcov
-.next/
-.nuxt/
-dist/
-build/
 
-# MongoDB
-.mongodb/
-
-# Test reports
-*.tap
-*.junit.xml
-
-# Vite
-.vite/
-
-# Vitest
-.vitest/
-
-# Package lock
-package-lock.json
-.yarn-integrity
-.yarn/
-.cache/
-
-# MongoDB Memory Server
-.mongomemoryserver/
-
-# Temporary MongoDB binaries
-backend/node_modules/.cache/mongodb-memory-server/
-
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 ```
