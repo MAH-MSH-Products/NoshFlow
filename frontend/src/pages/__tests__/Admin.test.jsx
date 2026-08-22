@@ -79,13 +79,14 @@ describe('Suite 4: Admin Panel', () => {
         render(<AdminDashboard />);
 
         await waitFor(() => {
-            fireEvent.change(screen.getByPlaceholderText(/Title/i), { target: { value: 'Test Burger' } });
-            fireEvent.change(screen.getByPlaceholderText(/Price/i), { target: { value: '10.99' } });
+            fireEvent.change(screen.getByPlaceholderText(/Item Title/i), { target: { value: 'Test Burger' } });
+            fireEvent.change(screen.getByPlaceholderText(/Price \(\$\)/i), { target: { value: '10.99' } });
             fireEvent.change(screen.getByPlaceholderText(/Description/i), { target: { value: 'Delicious' } });
+            fireEvent.change(screen.getByPlaceholderText(/Stock/i), { target: { value: '5' } });
         });
 
         const addBtn = screen.getByRole('button', { name: /Add Menu Item/i });
-        fireEvent.click(addBtn);
+        fireEvent.submit(addBtn.closest('form'));
 
         await waitFor(() => {
             const postCalls = global.fetch.mock.calls.filter(call => call[1]?.method === 'POST');
