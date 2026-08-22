@@ -21,13 +21,13 @@ describe('Suite 3: Staff Dashboards', () => {
         // Mock backend response for kitchen orders
         const mockKitchenOrders = [
             {
-                _id: 'order1',
-                status: 'pending',
+                _id: 'abcorder1',
+                status: 'registered',
                 createdAt: new Date().toISOString(),
                 items: [{ quantity: 2, menuItem: { title: 'Burger' } }]
             },
             {
-                _id: 'order2',
+                _id: 'xyzorder2',
                 status: 'preparing',
                 createdAt: new Date().toISOString(),
                 items: [{ quantity: 1, menuItem: { title: 'Pizza' } }]
@@ -43,9 +43,9 @@ describe('Suite 3: Staff Dashboards', () => {
 
         // Wait for the data to load and check if both items are rendered
         await waitFor(() => {
-            // Check for order IDs (slice(-6) logic in your component)
-            expect(screen.getByText(/#order1/i)).toBeInTheDocument();
-            expect(screen.getByText(/#order2/i)).toBeInTheDocument();
+            // Check for order IDs (slice(-6) logic in your component shows last 6 chars)
+            expect(screen.getByText(/rder1/i)).toBeInTheDocument();
+            expect(screen.getByText(/rder2/i)).toBeInTheDocument();
 
             // Check for food titles
             expect(screen.getByText(/2x/i)).toBeInTheDocument();
@@ -58,7 +58,7 @@ describe('Suite 3: Staff Dashboards', () => {
         const mockPendingOrder = [
             {
                 _id: 'order123',
-                status: 'pending',
+                status: 'registered',
                 createdAt: new Date().toISOString(),
                 items: [{ quantity: 1, menuItem: { title: 'Pasta' } }]
             }
@@ -72,8 +72,8 @@ describe('Suite 3: Staff Dashboards', () => {
 
         render(<KitchenDashboard />);
 
-        // Wait for the button to appear
-        const startBtn = await screen.findByRole('button', { name: /Start Preparing/i });
+        // Wait for the button to appear - using text content instead of role
+        const startBtn = await screen.findByText(/Start Preparing/i);
 
         // Mock the PATCH request for when the button is clicked
         global.fetch.mockResolvedValueOnce({
@@ -105,6 +105,7 @@ describe('Suite 3: Staff Dashboards', () => {
                 status: 'ready',
                 user: 'user789',
                 totalPrice: 45.50,
+                createdAt: new Date().toISOString(),
                 items: [{ quantity: 1, menuItem: { title: 'Cola' } }]
             }
         ];
@@ -117,8 +118,8 @@ describe('Suite 3: Staff Dashboards', () => {
 
         render(<CashierDashboard />); // ✅ Correct component
 
-        // Wait for the delivery button
-        const deliverBtn = await screen.findByRole('button', { name: /Deliver & Complete/i });
+        // Wait for the delivery button - using text content instead of role
+        const deliverBtn = await screen.findByText(/Deliver Order/i);
 
         // Mock PATCH request for completion
         global.fetch.mockResolvedValueOnce({

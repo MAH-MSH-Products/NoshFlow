@@ -18,7 +18,7 @@ describe('Suite 4: Discount APIs', () => {
         const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
         const mmsOptions = { instance: { launchTimeout: 60000 } };
         if (!isCI) {
-            mmsOptions.binary = { systemBinary: 'C:\\Program Files\\MongoDB\\Server\\8.0\\bin\\mongod.exe' };
+            mmsOptions.binary = { systemBinary: '/usr/bin/mongod' };
         }
 
         mongoServer = await MongoMemoryServer.create(mmsOptions);
