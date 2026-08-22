@@ -1,0 +1,92 @@
+stages:
+  - build
+  - code_quality
+  - test
+  - deploy
+
+variables:
+  SONAR_HOST_URL: "https://sonarqube.example.com"
+  SONAR_TOKEN: "${SONAR_TOKEN}"
+  DEPLOY_HOST: "192.168.1.100"
+  DEPLOY_USER: "deploy"
+
+# Build stage - compile both backend and frontend
+build:
+  stage: build
+  image: node:22
+  script:
+    - echo "Building Backend..."
+    - cd backend
+    - npm ci
+    - echo "Backend build completed (Node.js projects don't require compilation)"
+    - cd ..
+    - echo "Building Frontend..."
+    - cd frontend
+    - npm ci
+    - npm run build
+    - echo "Frontend build completed"
+  artifacts:
+    paths:
+      - backend/
+      - frontend/dist/
+    expire_in: 1 hour
+  only:
+    - master
+
+# Code Quality stage - SonarQube analysis
+sonarqube:
+  stage: code_quality
+  image: sonarsource/sonar-scanner-cli:latest
+  needs: ["build"]
+  script:
+    - echo "Running SonarQube Scanner..."
+    - sonar-scanner
+      -Dsonar.projectKey=NoshFlow
+      -Dsonar.sources=.
+      -Dsonar.host.url=${SONAR_HOST_URL}
+      -Dsonar.login=${SONAR_TOKEN}
+      -Dsonar.qualitygate.wait=true
+  allow_failure: true
+  only:
+    - master
+
+# Test stage - Run Vitest Unit Tests
+test:
+  stage: test
+  image: node:22
+  needs: ["build"]
+  services:
+    - mongo:latest
+  variables:
+    MONGO_URI: mongodb://localhost:27017/foodops_test
+  script:
+    - echo "Running Backend Tests..."
+    - cd backend
+    - npm ci
+    - npm test -- --run
+    - cd ..
+    - echo "Running Frontend Tests..."
+    - cd frontend
+    - npm ci
+    - npm run test -- --run
+  only:
+    - master
+
+# Deploy stage - SSH/SCP deployment
+deploy:
+  stage: deploy
+  image: alpine:latest
+  needs: ["test"]
+  before_script:
+    - apk add --no-cache openssh-client sshpass
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+  script:
+    - echo "Starting deployment to ${DEPLOY_HOST}..."
+    - echo "Mocking SSH connection to ${DEPLOY_HOST}..."
+    - echo "scp -r backend/ ${DEPLOY_USER}@${DEPLOY_HOST}:/app/backend/"
+    - echo "scp -r frontend/dist/ ${DEPLOY_USER}@${DEPLOY_HOST}:/app/frontend/"
+    - echo "ssh ${DEPLOY_USER}@${DEPLOY_HOST} 'cd /app && ./deploy.sh'"
+    - echo "Deployment completed successfully!"
+  only:
+    - master

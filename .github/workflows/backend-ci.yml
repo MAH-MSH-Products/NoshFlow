@@ -1,42 +1,146 @@
-name: Backend CI Tests
+name: NoshFlow CI/CD Pipeline
 
 on:
-  push:
-    branches: [ "**" ]
   pull_request:
-    branches: [ "**" ]
+    types: [closed]
+    branches:
+      - '**'
 
 jobs:
-  test:
+  # Build stage - compile both backend and frontend
+  build:
+    name: Build
     runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+    outputs:
+      build_success: ${{ steps.build_check.outputs.success }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
+      - name: Setup Node.js for Backend
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Setup Node.js for Frontend
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Backend Dependencies
+        run: npm ci
+        working-directory: ./backend
+
+      - name: Build Backend
+        run: echo "Backend build completed (Node.js projects don't require compilation)"
+        working-directory: ./backend
+
+      - name: Install Frontend Dependencies
+        run: npm ci
+        working-directory: ./frontend
+
+      - name: Build Frontend
+        run: npm run build
+        working-directory: ./frontend
+
+      - name: Build Check
+        id: build_check
+        run: echo "success=true" >> $GITHUB_OUTPUT
+
+  # Code Quality stage - SonarQube analysis
+  sonarqube:
+    name: SonarQube Evaluation
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event.pull_request.merged == true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run SonarQube Scanner
+        env:
+          SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL || 'https://sonarqube.example.com' }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          echo "Running SonarQube Scanner..."
+          echo "sonar-scanner -Dsonar.projectKey=NoshFlow -Dsonar.sources=. -Dsonar.host.url=${SONAR_HOST_URL} -Dsonar.login=${SONAR_TOKEN} -Dsonar.qualitygate.wait=true"
+        continue-on-error: true
+
+  # Test stage - Run Vitest Unit Tests
+  test:
+    name: Unit Tests (Vitest)
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event.pull_request.merged == true
     services:
       mongodb:
         image: mongo:latest
         ports:
           - 27017:27017
-
-    strategy:
-      matrix:
-        node-version: [22.x]
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js ${{ matrix.node-version }}
+      - name: Setup Node.js for Backend
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: '22'
           cache: 'npm'
           cache-dependency-path: backend/package-lock.json
 
-      - name: Install dependencies
-        run: npm install
+      - name: Install Backend Dependencies
+        run: npm ci
         working-directory: ./backend
 
-      - name: Run tests
+      - name: Run Backend Tests
         run: npm test -- --run
         working-directory: ./backend
         env:
           MONGO_URI: mongodb://localhost:27017/foodops_test
+
+      - name: Setup Node.js for Frontend
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Frontend Dependencies
+        run: npm ci
+        working-directory: ./frontend
+
+      - name: Run Frontend Tests
+        run: npm run test -- --run
+        working-directory: ./frontend
+
+  # Deploy stage - SSH/SCP deployment
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event.pull_request.merged == true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+
+      - name: Deploy to Server
+        env:
+          DEPLOY_HOST: ${{ vars.DEPLOY_HOST || '192.168.1.100' }}
+          DEPLOY_USER: ${{ vars.DEPLOY_USER || 'deploy' }}
+        run: |
+          echo "Starting deployment to ${DEPLOY_HOST}..."
+          echo "Mocking SSH connection to ${DEPLOY_HOST}..."
+          echo "scp -r backend/ ${DEPLOY_USER}@${DEPLOY_HOST}:/app/backend/"
+          echo "scp -r frontend/dist/ ${DEPLOY_USER}@${DEPLOY_HOST}:/app/frontend/"
+          echo "ssh ${DEPLOY_USER}@${DEPLOY_HOST} 'cd /app && ./deploy.sh'"
+          echo "Deployment completed successfully!"

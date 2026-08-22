@@ -1,2 +1,15 @@
-backend/node_modules/
-backend/uploads/
+```
+# Dependencies
+node_modules/
+
+# Environment files
+.env
+.env.local
+*.env.*
+
+# Logs
+*.log
+
+# Package lock files (already in repo but good to have in gitignore for consistency)
+package-lock.json
+```
