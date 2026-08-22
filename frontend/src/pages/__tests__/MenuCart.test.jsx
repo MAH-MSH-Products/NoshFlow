@@ -11,7 +11,7 @@ global.fetch = vi.fn();
 const CartInjector = () => {
     const { addToCart } = useCart();
     return (
-        <button onClick={() => addToCart({ _id: 'food123', title: 'Pepperoni Pizza', price: 15.00 })}>
+        <button onClick={() => addToCart({ _id: 'food123', name: 'Pepperoni Pizza', price: 15.00, quantity: 1 })}>
             Inject Pizza
         </button>
     );
@@ -107,7 +107,7 @@ describe('Suite 2: Menu & Cart Context', () => {
             expect(fetchOptions.method).toBe('POST');
 
             const requestBody = JSON.parse(fetchOptions.body);
-            expect(requestBody.items[0].menuItem).toBe('food123');
+            expect(requestBody.items[0].menuItemId).toBe('food123');
             expect(requestBody.items[0].quantity).toBe(1);
         });
     });
